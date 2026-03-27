@@ -8,6 +8,7 @@ import useAsync from '../../hooks/useAsync'
 import { SERVICES } from '../../api/data'
 import { TIME_SLOTS, ROUTES } from '../../constants'
 import Button from '../../components/ui/Button'
+import ServiceGrid from '../services/ServiceGrid'
 
 const STEPS = ['Service', 'Schedule', 'Confirm']
 
@@ -95,25 +96,14 @@ const StepIndicator = ({ current, steps }) => (
 const ServiceStep = ({ selected, onSelect }) => (
   <div>
     <h5 className="fw-bold mb-4">Select a Service</h5>
-    <div className="row g-3">
-      {SERVICES.map(s => (
-        <div key={s.id} className="col-6 col-md-4 col-lg-3">
-          <div
-            className="service-card"
-            style={selected === s.name ? { boxShadow: '0 0 0 2px #2563eb' } : {}}
-            onClick={() => onSelect(s.name)}
-            role="button" tabIndex={0}
-            onKeyDown={e => e.key === 'Enter' && onSelect(s.name)}
-          >
-            <div className="service-icon" style={{ background: s.color }}>
-              <i className={`bi bi-${s.icon}`} style={{ color: s.iconColor }} />
-            </div>
-            <h6 className="fw-semibold mb-0 small">{s.name}</h6>
-            <p className="text-muted" style={{ fontSize: '0.75rem' }}>₹{s.price}</p>
-          </div>
-        </div>
-      ))}
-    </div>
+    <ServiceGrid
+      services={SERVICES}
+      compact
+      selected={selected}
+      onSelect={s => onSelect(s.name)}
+      cols={{ xs: 6, md: 4, lg: 3 }}
+      gap={3}
+    />
   </div>
 )
 

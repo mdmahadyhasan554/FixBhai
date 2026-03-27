@@ -74,6 +74,14 @@ a { text-decoration: none; }
 }
 
 /* Service Cards */
+.service-card-wrap {
+  cursor: pointer;
+  transition: all 0.22s ease;
+}
+.service-card-selected {
+  border-color: var(--primary) !important;
+}
+/* Legacy .service-card kept for any remaining usages */
 .service-card {
   border: 1.5px solid var(--border);
   border-radius: 16px;
