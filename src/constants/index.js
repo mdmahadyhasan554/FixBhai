@@ -75,6 +75,26 @@ export const FOOTER_CONTACT = [
   { icon: 'geo-alt',   text: 'Mumbai, Maharashtra, India' },
 ]
 
+// ── Technician filter options ────────────────────────────
+export const TECH_SERVICES = [
+  'All', 'AC Repair', 'Plumbing', 'Electrical',
+  'Cleaning', 'Carpentry', 'Painting', 'Pest Control', 'CCTV Install',
+]
+
+export const TECH_AVAILABILITY = [
+  { value: 'all',       label: 'All Technicians'  },
+  { value: 'available', label: 'Available Now'     },
+  { value: 'busy',      label: 'Currently Busy'   },
+]
+
+export const TECH_SORT_OPTIONS = [
+  { value: 'rating',     label: 'Top Rated'           },
+  { value: 'price_asc',  label: 'Price: Low to High'  },
+  { value: 'price_desc', label: 'Price: High to Low'  },
+  { value: 'experience', label: 'Most Experienced'    },
+  { value: 'reviews',    label: 'Most Reviewed'       },
+]
+
 // ── How it works steps ───────────────────────────────────
 export const HOW_IT_WORKS = [
   { step: 1, title: 'Choose a Service', desc: 'Browse from 25+ home services',      icon: 'grid'          },
