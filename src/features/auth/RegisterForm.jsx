@@ -1,50 +1,67 @@
-import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { registerUser } from '../../services/authService'
+import useForm from '../../hooks/useForm'
+import useAsync from '../../hooks/useAsync'
+import { required, isEmail, minLength } from '../../utils/validators'
 import Input from '../../components/ui/Input'
 import Button from '../../components/ui/Button'
+import { ROUTES } from '../../constants'
+
+const RULES = {
+  name:     v => required(v),
+  email:    v => isEmail(v),
+  phone:    v => required(v),
+  password: v => minLength(6)(v),
+}
 
 const RegisterForm = () => {
-  const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' })
-  const [loading, setLoading] = useState(false)
+  const { values, errors, handleChange, validateAll } = useForm(
+    { name: '', email: '', phone: '', password: '' },
+    RULES
+  )
+  const { run, loading, error } = useAsync()
   const { login } = useAuth()
-  const navigate = useNavigate()
-
-  const update = (field, val) => setForm(f => ({ ...f, [field]: val }))
+  const navigate  = useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setLoading(true)
-    await new Promise(r => setTimeout(r, 800))
-    login({ name: form.name, email: form.email, role: 'customer' }, 'demo_token_456')
-    navigate('/dashboard')
-    setLoading(false)
+    if (!validateAll()) return
+    await run(async () => {
+      const { user, token } = await registerUser(values)
+      login(user, token)
+      navigate(ROUTES.DASHBOARD)
+    })
   }
 
   return (
     <div className="auth-card p-4 p-md-5 shadow-sm">
       <div className="text-center mb-4">
-        <div className="mb-3">
-          <i className="bi bi-person-plus text-primary" style={{ fontSize: '2.5rem' }} />
-        </div>
-        <h4 className="fw-bold">Create Account</h4>
+        <i className="bi bi-person-plus text-primary" style={{ fontSize: '2.5rem' }} />
+        <h4 className="fw-bold mt-2">Create Account</h4>
         <p className="text-muted small">Join FixBhai for trusted home services</p>
       </div>
-      <form onSubmit={handleSubmit}>
-        <Input label="Full Name" icon="person" placeholder="Your full name"
-          value={form.name} onChange={e => update('name', e.target.value)} required />
-        <Input label="Email Address" icon="envelope" type="email" placeholder="you@example.com"
-          value={form.email} onChange={e => update('email', e.target.value)} required />
-        <Input label="Phone Number" icon="telephone" type="tel" placeholder="+91 98765 43210"
-          value={form.phone} onChange={e => update('phone', e.target.value)} required />
-        <Input label="Password" icon="lock" type="password" placeholder="Create a password"
-          value={form.password} onChange={e => update('password', e.target.value)} required />
+
+      {error && <div className="alert alert-danger rounded-3 py-2 small">{error}</div>}
+
+      <form onSubmit={handleSubmit} noValidate>
+        <Input label="Full Name"      icon="person"    name="name"     placeholder="Your full name"
+          value={values.name}     onChange={handleChange} error={errors.name} />
+        <Input label="Email Address"  icon="envelope"  name="email"    type="email" placeholder="you@example.com"
+          value={values.email}    onChange={handleChange} error={errors.email} />
+        <Input label="Phone Number"   icon="telephone" name="phone"    type="tel" placeholder="+91 98765 43210"
+          value={values.phone}    onChange={handleChange} error={errors.phone} />
+        <Input label="Password"       icon="lock"      name="password" type="password" placeholder="Min. 6 characters"
+          value={values.password} onChange={handleChange} error={errors.password} />
+
         <Button type="submit" loading={loading} className="w-100 py-2 rounded-3 mt-2">
           Create Account
         </Button>
       </form>
+
       <p className="text-center text-muted small mt-4 mb-0">
-        Already have an account? <Link to="/login" className="text-primary fw-semibold">Sign in</Link>
+        Already have an account?{' '}
+        <Link to={ROUTES.LOGIN} className="text-primary fw-semibold">Sign in</Link>
       </p>
     </div>
   )

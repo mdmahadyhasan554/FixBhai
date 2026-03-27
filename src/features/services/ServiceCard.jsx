@@ -1,9 +1,16 @@
 import { useNavigate } from 'react-router-dom'
+import { buildBookingUrl } from '../../utils/formatters'
 
 const ServiceCard = ({ service }) => {
   const navigate = useNavigate()
   return (
-    <div className="service-card h-100" onClick={() => navigate(`/booking?service=${service.name}`)}>
+    <div
+      className="service-card h-100"
+      onClick={() => navigate(buildBookingUrl({ service: service.name }))}
+      role="button"
+      tabIndex={0}
+      onKeyDown={e => e.key === 'Enter' && navigate(buildBookingUrl({ service: service.name }))}
+    >
       <div className="service-icon" style={{ background: service.color }}>
         <i className={`bi bi-${service.icon}`} style={{ color: service.iconColor }} />
       </div>
