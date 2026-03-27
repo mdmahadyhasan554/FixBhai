@@ -19,15 +19,15 @@ import { ROUTES } from '../../constants'
 const AuthLayout = ({ icon, title, subtitle, footerText, footerLink, error, children }) => (
   <div className="auth-card shadow-sm p-4 p-md-5">
 
-    {/* Brand header */}
+    {/* Brand header — logo + title */}
     <div className="text-center mb-4">
-      <div
-        className="d-inline-flex align-items-center justify-content-center rounded-3 mb-3"
-        style={{ width: 56, height: 56, background: '#dbeafe' }}
-        aria-hidden="true"
-      >
-        <i className={`bi bi-${icon} text-primary`} style={{ fontSize: '1.6rem' }} />
-      </div>
+      <Link to={ROUTES.HOME} className="text-decoration-none d-inline-block mb-3">
+        <img
+          src="/fixbhai-logo.png"
+          alt="FixBhai"
+          style={{ height: 52, width: 'auto', objectFit: 'contain' }}
+        />
+      </Link>
       <h4 className="fw-bold mb-1">{title}</h4>
       <p className="text-muted small mb-0">{subtitle}</p>
     </div>

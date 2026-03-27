@@ -27,9 +27,12 @@ const Footer = () => (
 
         {/* Brand column */}
         <div className="col-lg-4">
-          <Link to={ROUTES.HOME} className="text-decoration-none d-inline-flex align-items-center gap-2 mb-3">
-            <i className="bi bi-tools text-warning fs-5" aria-hidden="true" />
-            <span className="fw-bold fs-5 text-white">FixBhai</span>
+          <Link to={ROUTES.HOME} className="text-decoration-none d-inline-block mb-3">
+            <img
+              src="/fixbhai-logo.png"
+              alt="FixBhai"
+              style={{ height: 48, width: 'auto', objectFit: 'contain' }}
+            />
           </Link>
           <p className="small mb-3" style={{ color: 'rgba(255,255,255,0.6)', lineHeight: 1.7 }}>
             Trusted home services at your doorstep. Book verified technicians

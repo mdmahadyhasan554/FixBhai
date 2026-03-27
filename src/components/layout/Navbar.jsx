@@ -51,13 +51,16 @@ const Navbar = () => {
     >
       <div className="container">
 
-        {/* Brand */}
+        {/* Brand — uses the FixBhai logo image */}
         <Link
-          className="navbar-brand fw-bold fs-4 d-flex align-items-center gap-1 text-decoration-none"
+          className="navbar-brand d-flex align-items-center text-decoration-none"
           to={ROUTES.HOME}
         >
-          <i className="bi bi-tools text-primary" aria-hidden="true" />
-          <span className="text-dark">Fix<span style={{ color: '#f59e0b' }}>Bhai</span></span>
+          <img
+            src="/fixbhai-logo.png"
+            alt="FixBhai — Trusted Services at Your Doorstep"
+            style={{ height: 44, width: 'auto', objectFit: 'contain' }}
+          />
         </Link>
 
         {/* Desktop nav links */}
@@ -201,8 +204,7 @@ const MobileMenu = ({ user, onLogout }) => (
         {user ? (
           <>
             <div className="d-flex align-items-center gap-2 px-2 py-2 rounded-3 bg-light mb-2">
-              <UserAvatar name={user.name} size={34} fontSize="0.9rem" />
-              <div>
+              <UserAvatar name={user.name} size={34} fontSize="0.9rem" />              <div>
                 <div className="fw-semibold small">{user.name}</div>
                 <div className="text-muted" style={{ fontSize: '0.72rem' }}>{user.email}</div>
               </div>

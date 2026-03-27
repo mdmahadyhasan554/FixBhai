@@ -44,12 +44,12 @@ const DashboardShell = ({
       >
         {/* Brand */}
         <div className="p-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-          <Link to={ROUTES.HOME} className="text-decoration-none d-flex align-items-center gap-2">
-            <div className="rounded-2 d-flex align-items-center justify-content-center"
-              style={{ width: 32, height: 32, background: accentColor }}>
-              <i className="bi bi-tools text-white" style={{ fontSize: '0.9rem' }} />
-            </div>
-            <span className="fw-bold fs-5 text-white">FixBhai</span>
+          <Link to={ROUTES.HOME} className="text-decoration-none d-block mb-1">
+            <img
+              src="/fixbhai-logo.png"
+              alt="FixBhai"
+              style={{ height: 36, width: 'auto', objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
+            />
           </Link>
           {user && (
             <div className="mt-3 d-flex align-items-center gap-2">
