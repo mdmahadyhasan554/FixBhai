@@ -411,3 +411,9 @@ a { text-decoration: none; }
 
 /* ── Dashboard shell sidebar ─────────────────────────── */
 .fw-mono { font-family: 'Courier New', monospace; }
+
+/* ── Toast notifications ─────────────────────────────── */
+@keyframes slideInRight {
+  from { transform: translateX(110%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}

@@ -1,94 +1,139 @@
 /**
  * client.js — Axios instance (single source of truth)
  *
- * All API modules import from here, never from 'axios' directly.
- *
- * Config is driven by .env variables:
- *   VITE_API_URL      — backend base URL  (default: https://api.fixbhai.in/v1)
- *   VITE_API_TIMEOUT  — request timeout ms (default: 10000)
- *   VITE_USE_MOCK     — 'true' skips real HTTP calls (default: true)
+ * Features:
+ *   - Base URL + timeout from .env
+ *   - Request interceptor: attaches JWT Bearer token
+ *   - Response interceptor: unwraps data, normalises errors
+ *   - 401 handling: attempts token refresh once, then redirects to /login
+ *   - Request queue: holds requests while a refresh is in progress
  */
 import axios from 'axios'
 
-// ── Instance ──────────────────────────────────────────────
+const BASE_URL = import.meta.env.VITE_API_URL    || 'https://api.fixbhai.in/v1'
+const TIMEOUT  = Number(import.meta.env.VITE_API_TIMEOUT) || 10000
+
+// ── Axios instance ────────────────────────────────────────
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_URL     || 'https://api.fixbhai.in/v1',
-  timeout: Number(import.meta.env.VITE_API_TIMEOUT) || 10000,
+  baseURL: BASE_URL,
+  timeout: TIMEOUT,
   headers: {
     'Content-Type': 'application/json',
-    'Accept':       'application/json',
+    Accept:         'application/json',
   },
 })
 
-// ── Request interceptor — attach auth token ───────────────
+// ── Token helpers (read/write localStorage) ───────────────
+export const tokenStorage = {
+  get:    ()      => { try { return JSON.parse(localStorage.getItem('fixbhai_token')) } catch { return null } },
+  set:    (token) => { try { localStorage.setItem('fixbhai_token', JSON.stringify(token)) } catch {} },
+  remove: ()      => { try { localStorage.removeItem('fixbhai_token'); localStorage.removeItem('fixbhai_user') } catch {} },
+}
+
+// ── Refresh state ─────────────────────────────────────────
+let isRefreshing = false
+let refreshQueue = []   // [{ resolve, reject }]
+
+const processQueue = (error, token = null) => {
+  refreshQueue.forEach(({ resolve, reject }) => error ? reject(error) : resolve(token))
+  refreshQueue = []
+}
+
+// ── Request interceptor — attach token ───────────────────
 client.interceptors.request.use(
   (config) => {
-    try {
-      const raw   = localStorage.getItem('fixbhai_token')
-      const token = raw ? JSON.parse(raw) : null
-      if (token) config.headers.Authorization = `Bearer ${token}`
-    } catch {
-      // localStorage unavailable (SSR / private mode) — continue without token
-    }
+    const token = tokenStorage.get()
+    if (token) config.headers.Authorization = `Bearer ${token}`
     return config
   },
   (error) => Promise.reject(error),
 )
 
-// ── Response interceptor — normalise errors ───────────────
+// ── Response interceptor — errors + refresh ──────────────
 client.interceptors.response.use(
-  (response) => response.data,   // unwrap .data so callers get payload directly
-  (error) => {
-    const status  = error.response?.status
-    const message = error.response?.data?.message
-      || error.response?.data?.error
-      || error.message
-      || 'An unexpected error occurred'
+  // Unwrap .data so callers receive the payload directly
+  (response) => response.data,
 
-    // 401 — token expired or invalid
-    if (status === 401) {
-      localStorage.removeItem('fixbhai_token')
-      localStorage.removeItem('fixbhai_user')
-      window.location.href = '/login'
+  async (error) => {
+    const status   = error.response?.status
+    const original = error.config
+
+    // ── 401: try token refresh once ──────────────────────
+    if (status === 401 && !original._retry) {
+      if (isRefreshing) {
+        // Queue this request until refresh completes
+        return new Promise((resolve, reject) => {
+          refreshQueue.push({ resolve, reject })
+        }).then(token => {
+          original.headers.Authorization = `Bearer ${token}`
+          return client(original)
+        })
+      }
+
+      original._retry = true
+      isRefreshing    = true
+
+      try {
+        const raw          = localStorage.getItem('fixbhai_refresh_token')
+        const refreshToken = raw ? JSON.parse(raw) : null
+
+        if (!refreshToken) throw new Error('No refresh token')
+
+        const { token: newToken } = await axios.post(
+          `${BASE_URL}/auth/refresh`,
+          { refreshToken },
+          { headers: { 'Content-Type': 'application/json' } },
+        )
+
+        tokenStorage.set(newToken)
+        processQueue(null, newToken)
+        original.headers.Authorization = `Bearer ${newToken}`
+        return client(original)
+      } catch (refreshError) {
+        processQueue(refreshError)
+        tokenStorage.remove()
+        window.location.href = '/login'
+        return Promise.reject(refreshError)
+      } finally {
+        isRefreshing = false
+      }
     }
 
-    // 403 — forbidden
-    if (status === 403) {
+    // ── Normalise all other errors ────────────────────────
+    const message =
+      error.response?.data?.message ||
+      error.response?.data?.error   ||
+      error.message                 ||
+      'An unexpected error occurred'
+
+    if (status === 403)
       return Promise.reject(new ApiError('You do not have permission to perform this action', 403))
-    }
 
-    // 404 — not found
-    if (status === 404) {
+    if (status === 404)
       return Promise.reject(new ApiError('The requested resource was not found', 404))
-    }
 
-    // 422 — validation errors from server
     if (status === 422) {
       const fieldErrors = error.response?.data?.errors || {}
       return Promise.reject(new ApiError(message, 422, fieldErrors))
     }
 
-    // 5xx — server errors
-    if (status >= 500) {
+    if (status >= 500)
       return Promise.reject(new ApiError('Server error. Please try again later.', status))
-    }
 
-    // Network / timeout
-    if (!error.response) {
+    if (!error.response)
       return Promise.reject(new ApiError('Network error. Check your connection.', 0))
-    }
 
     return Promise.reject(new ApiError(message, status))
   },
 )
 
-// ── ApiError class ────────────────────────────────────────
+// ── ApiError ──────────────────────────────────────────────
 export class ApiError extends Error {
   constructor(message, status = 0, fieldErrors = {}) {
     super(message)
     this.name        = 'ApiError'
     this.status      = status
-    this.fieldErrors = fieldErrors  // { fieldName: 'error message' }
+    this.fieldErrors = fieldErrors
   }
 }
 

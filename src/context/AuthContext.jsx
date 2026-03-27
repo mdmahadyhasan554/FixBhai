@@ -19,6 +19,7 @@
 import { createContext, useContext, useReducer, useCallback } from 'react'
 import useLocalStorage from '../hooks/useLocalStorage'
 import { loginUser, registerUser, logoutUser } from '../services/authService'
+import { useToast } from './ToastContext'
 
 // ── State shape ───────────────────────────────────────────
 const INITIAL_STATE = {
@@ -56,6 +57,7 @@ export const AuthProvider = ({ children }) => {
   const [user,  setUser]  = useLocalStorage('fixbhai_user',  null)
   const [token, setToken] = useLocalStorage('fixbhai_token', null)
   const [state, dispatch] = useReducer(authReducer, INITIAL_STATE)
+  const { toast }         = useToast()
 
   const isAuthenticated = Boolean(user && token)
 
@@ -68,10 +70,12 @@ export const AuthProvider = ({ children }) => {
       setToken(authToken)
       setUser(userData)
       dispatch({ type: AUTH_ACTIONS.SUCCESS })
+      toast.success(`Welcome back, ${userData.name}!`)
       return userData
     } catch (err) {
       const msg = err?.message || 'Login failed. Please try again.'
       dispatch({ type: AUTH_ACTIONS.FAILURE, payload: msg })
+      toast.error(msg)
       throw err
     }
   }, [setToken, setUser])
@@ -83,10 +87,12 @@ export const AuthProvider = ({ children }) => {
       setToken(authToken)
       setUser(newUser)
       dispatch({ type: AUTH_ACTIONS.SUCCESS })
+      toast.success(`Account created! Welcome, ${newUser.name}!`)
       return newUser
     } catch (err) {
       const msg = err?.message || 'Registration failed. Please try again.'
       dispatch({ type: AUTH_ACTIONS.FAILURE, payload: msg })
+      toast.error(msg)
       throw err
     }
   }, [setToken, setUser])

@@ -26,6 +26,7 @@ import {
   changeStatus   as apiChangeStatus,
 } from '../services/bookingService'
 import { generateBookingId } from '../utils/formatters'
+import { useToast } from './ToastContext'
 
 // ── Seed data (shown before API loads) ───────────────────
 const SEED = [
@@ -102,6 +103,7 @@ const BookingContext = createContext(null)
 
 export const BookingProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, INITIAL)
+  const { toast }         = useToast()
 
   // ── Load bookings on mount ───────────────────────────────
   useEffect(() => {
@@ -149,11 +151,13 @@ export const BookingProvider = ({ children }) => {
         payload: { id: tempId, changes: { ...created, id: created.id || generateBookingId(snapshot.length) } },
       })
       dispatch({ type: A.SUBMIT_SUCCESS })
+      toast.success('Booking confirmed! We\'ll assign a technician shortly.')
       return created
     } catch (err) {
-      // Rollback on failure
       dispatch({ type: A.ROLLBACK, payload: snapshot })
-      dispatch({ type: A.SUBMIT_ERROR, payload: err?.message || 'Failed to create booking' })
+      const msg = err?.message || 'Failed to create booking'
+      dispatch({ type: A.SUBMIT_ERROR, payload: msg })
+      toast.error(msg)
       throw err
     }
   }, [state.bookings])
@@ -167,9 +171,12 @@ export const BookingProvider = ({ children }) => {
     try {
       await apiChangeStatus(id, status)
       dispatch({ type: A.SUBMIT_SUCCESS })
+      toast.success('Booking status updated.')
     } catch (err) {
       dispatch({ type: A.ROLLBACK, payload: snapshot })
-      dispatch({ type: A.SUBMIT_ERROR, payload: err?.message || 'Failed to update booking' })
+      const msg = err?.message || 'Failed to update booking'
+      dispatch({ type: A.SUBMIT_ERROR, payload: msg })
+      toast.error(msg)
       throw err
     }
   }, [state.bookings])
@@ -183,9 +190,12 @@ export const BookingProvider = ({ children }) => {
     try {
       await apiCancel(id)
       dispatch({ type: A.SUBMIT_SUCCESS })
+      toast.info('Booking cancelled.')
     } catch (err) {
       dispatch({ type: A.ROLLBACK, payload: snapshot })
-      dispatch({ type: A.SUBMIT_ERROR, payload: err?.message || 'Failed to cancel booking' })
+      const msg = err?.message || 'Failed to cancel booking'
+      dispatch({ type: A.SUBMIT_ERROR, payload: msg })
+      toast.error(msg)
       throw err
     }
   }, [state.bookings])
