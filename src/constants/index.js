@@ -121,6 +121,34 @@ export const PROBLEM_CATEGORIES = [
   'Other',
 ]
 
+// ── Homepage category pills ──────────────────────────────
+export const HOME_CATEGORIES = [
+  { label: 'All',         icon: 'grid-fill',        value: 'all'       },
+  { label: 'AC & Cooling',icon: 'wind',             value: 'appliance' },
+  { label: 'Plumbing',    icon: 'droplet-fill',     value: 'plumbing'  },
+  { label: 'Electrical',  icon: 'lightning-charge-fill', value: 'electrical'},
+  { label: 'Cleaning',    icon: 'stars',            value: 'cleaning'  },
+  { label: 'Painting',    icon: 'brush-fill',       value: 'painting'  },
+  { label: 'Carpentry',   icon: 'hammer',           value: 'carpentry' },
+  { label: 'Pest Control',icon: 'bug-fill',         value: 'pest'      },
+  { label: 'Security',    icon: 'camera-video-fill',value: 'security'  },
+]
+
+// ── Testimonials ─────────────────────────────────────────
+export const TESTIMONIALS = [
+  { id: 1, name: 'Priya Mehta',   location: 'Andheri, Mumbai', rating: 5, avatar: 'https://i.pravatar.cc/80?img=47', service: 'AC Repair',  text: 'Rajesh arrived on time and fixed my AC in under an hour. Super professional and reasonably priced. Will definitely book again!' },
+  { id: 2, name: 'Arjun Sharma',  location: 'Bandra, Mumbai',  rating: 5, avatar: 'https://i.pravatar.cc/80?img=68', service: 'Plumbing',   text: 'Had a major pipe leak at midnight. FixBhai connected me with a plumber within 30 minutes. Lifesaver!' },
+  { id: 3, name: 'Sneha Kapoor',  location: 'Powai, Mumbai',   rating: 4, avatar: 'https://i.pravatar.cc/80?img=49', service: 'Cleaning',   text: 'The deep cleaning team was thorough and left my apartment spotless. Great value for money.' },
+]
+
+// ── Trust badges ─────────────────────────────────────────
+export const TRUST_BADGES = [
+  { icon: 'patch-check-fill', label: 'Verified Technicians', desc: 'Background checked & certified' },
+  { icon: 'shield-fill-check',label: 'Insured Work',         desc: 'All services are fully insured'  },
+  { icon: 'clock-fill',       label: 'On-Time Guarantee',    desc: 'We respect your time'            },
+  { icon: 'cash-coin',        label: 'Pay After Service',    desc: 'No upfront payment required'     },
+]
+
 // ── How it works steps ───────────────────────────────────
 export const HOW_IT_WORKS = [
   { step: 1, title: 'Choose a Service', desc: 'Browse from 25+ home services',      icon: 'grid'          },
