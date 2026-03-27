@@ -1,32 +1,81 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { registerUser } from '../../services/authService'
-import useForm from '../../hooks/useForm'
 import useAsync from '../../hooks/useAsync'
-import { required, isEmail, minLength } from '../../utils/validators'
 import Input from '../../components/ui/Input'
 import Button from '../../components/ui/Button'
+import AuthLayout from './AuthLayout'
+import PasswordInput from './PasswordInput'
 import { ROUTES } from '../../constants'
 
-const RULES = {
-  name:     v => required(v),
-  email:    v => isEmail(v),
-  phone:    v => required(v),
-  password: v => minLength(6)(v),
+// Inline validators — avoids disk-write issue with src/utils/validators.js
+const required        = v => (v && v.toString().trim()) ? '' : 'This field is required'
+const isEmail         = v => (!v || !v.trim()) ? 'Email is required' : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? '' : 'Enter a valid email address'
+const isPhone         = v => (!v || !v.trim()) ? 'Phone number is required' : /^[+]?[\d\s\-().]{7,15}$/.test(v.trim()) ? '' : 'Enter a valid phone number'
+const isStrongPassword = v => {
+  if (!v) return 'Password is required'
+  if (v.length < 8) return 'Password must be at least 8 characters'
+  if (!/[A-Z]/.test(v)) return 'Include at least one uppercase letter'
+  if (!/[0-9]/.test(v)) return 'Include at least one number'
+  return ''
 }
+const matchesField = (other) => v => v === other ? '' : 'Passwords do not match'
 
+const INITIAL = { name: '', email: '', phone: '', password: '', confirmPassword: '', terms: false }
+
+/**
+ * RegisterForm
+ *
+ * Features:
+ *   - Full name, email, phone, password, confirm password
+ *   - Per-field inline validation — runs on submit, clears on change
+ *   - Password strength meter
+ *   - Confirm password match validation (dynamic — depends on password value)
+ *   - Terms & conditions checkbox
+ *   - API error in alert banner
+ */
 const RegisterForm = () => {
-  const { values, errors, handleChange, validateAll } = useForm(
-    { name: '', email: '', phone: '', password: '' },
-    RULES
-  )
+  const [values, setValues] = useState(INITIAL)
+  const [errors, setErrors] = useState({})
   const { run, loading, error } = useAsync()
-  const { login } = useAuth()
-  const navigate  = useNavigate()
+  const { login }  = useAuth()
+  const navigate   = useNavigate()
+
+  // Update a single field and clear its error
+  const set = (name, value) => {
+    setValues(prev => ({ ...prev, [name]: value }))
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }))
+  }
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target
+    set(name, type === 'checkbox' ? checked : value)
+  }
+
+  // Build rules dynamically so confirmPassword can reference current password
+  const validate = () => {
+    const rules = {
+      name:            required,
+      email:           isEmail,
+      phone:           isPhone,
+      password:        isStrongPassword,
+      confirmPassword: matchesField(values.password),
+      terms:           v => v ? '' : 'You must accept the terms to continue',
+    }
+    const newErrors = {}
+    let valid = true
+    Object.entries(rules).forEach(([field, fn]) => {
+      const err = fn(values[field])
+      if (err) { newErrors[field] = err; valid = false }
+    })
+    setErrors(newErrors)
+    return valid
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!validateAll()) return
+    if (!validate()) return
     await run(async () => {
       const { user, token } = await registerUser(values)
       login(user, token)
@@ -35,36 +84,131 @@ const RegisterForm = () => {
   }
 
   return (
-    <div className="auth-card p-4 p-md-5 shadow-sm">
-      <div className="text-center mb-4">
-        <i className="bi bi-person-plus text-primary" style={{ fontSize: '2.5rem' }} />
-        <h4 className="fw-bold mt-2">Create Account</h4>
-        <p className="text-muted small">Join FixBhai for trusted home services</p>
-      </div>
+    <AuthLayout
+      icon="person-plus"
+      title="Create your account"
+      subtitle="Join FixBhai for trusted home services"
+      error={error}
+      footerText="Already have an account?"
+      footerLink={{ to: ROUTES.LOGIN, label: 'Sign in' }}
+    >
+      <form onSubmit={handleSubmit} noValidate aria-label="Registration form">
 
-      {error && <div className="alert alert-danger rounded-3 py-2 small">{error}</div>}
+        {/* Full name */}
+        <Input
+          label="Full Name"
+          icon="person"
+          name="name"
+          placeholder="Your full name"
+          value={values.name}
+          onChange={handleChange}
+          error={errors.name}
+          autoComplete="name"
+          aria-required="true"
+        />
 
-      <form onSubmit={handleSubmit} noValidate>
-        <Input label="Full Name"      icon="person"    name="name"     placeholder="Your full name"
-          value={values.name}     onChange={handleChange} error={errors.name} />
-        <Input label="Email Address"  icon="envelope"  name="email"    type="email" placeholder="you@example.com"
-          value={values.email}    onChange={handleChange} error={errors.email} />
-        <Input label="Phone Number"   icon="telephone" name="phone"    type="tel" placeholder="+91 98765 43210"
-          value={values.phone}    onChange={handleChange} error={errors.phone} />
-        <Input label="Password"       icon="lock"      name="password" type="password" placeholder="Min. 6 characters"
-          value={values.password} onChange={handleChange} error={errors.password} />
+        {/* Email */}
+        <Input
+          label="Email Address"
+          icon="envelope"
+          type="email"
+          name="email"
+          placeholder="you@example.com"
+          value={values.email}
+          onChange={handleChange}
+          error={errors.email}
+          autoComplete="email"
+          aria-required="true"
+        />
 
-        <Button type="submit" loading={loading} className="w-100 py-2 rounded-3 mt-2">
+        {/* Phone */}
+        <Input
+          label="Phone Number"
+          icon="telephone"
+          type="tel"
+          name="phone"
+          placeholder="+91 98765 43210"
+          value={values.phone}
+          onChange={handleChange}
+          error={errors.phone}
+          autoComplete="tel"
+          hint="We'll send booking confirmations to this number"
+          aria-required="true"
+        />
+
+        {/* Password + strength meter */}
+        <PasswordInput
+          label="Password"
+          name="password"
+          value={values.password}
+          onChange={handleChange}
+          error={errors.password}
+          placeholder="Create a strong password"
+          showStrength
+        />
+
+        {/* Confirm password */}
+        <PasswordInput
+          label="Confirm Password"
+          name="confirmPassword"
+          value={values.confirmPassword}
+          onChange={handleChange}
+          error={errors.confirmPassword}
+          placeholder="Re-enter your password"
+        />
+
+        {/* Terms */}
+        <TermsCheckbox
+          checked={values.terms}
+          onChange={handleChange}
+          error={errors.terms}
+        />
+
+        {/* Submit */}
+        <Button
+          type="submit"
+          block
+          rounded
+          loading={loading}
+          className="py-2 mt-3"
+        >
           Create Account
         </Button>
-      </form>
 
-      <p className="text-center text-muted small mt-4 mb-0">
-        Already have an account?{' '}
-        <Link to={ROUTES.LOGIN} className="text-primary fw-semibold">Sign in</Link>
-      </p>
-    </div>
+      </form>
+    </AuthLayout>
   )
 }
+
+// ── Sub-components ────────────────────────────────────────
+
+const TermsCheckbox = ({ checked, onChange, error }) => (
+  <div className="mb-3">
+    <div className="form-check">
+      <input
+        className={`form-check-input ${error ? 'is-invalid' : ''}`}
+        type="checkbox"
+        id="terms-checkbox"
+        name="terms"
+        checked={checked}
+        onChange={onChange}
+        aria-required="true"
+        aria-describedby={error ? 'terms-error' : undefined}
+      />
+      <label className="form-check-label small" htmlFor="terms-checkbox">
+        I agree to the{' '}
+        <a href="#" className="text-primary text-decoration-none fw-medium">Terms of Service</a>
+        {' '}and{' '}
+        <a href="#" className="text-primary text-decoration-none fw-medium">Privacy Policy</a>
+      </label>
+    </div>
+    {error && (
+      <div id="terms-error" className="invalid-feedback d-block small mt-1" role="alert">
+        <i className="bi bi-exclamation-circle me-1" aria-hidden="true" />
+        {error}
+      </div>
+    )}
+  </div>
+)
 
 export default RegisterForm

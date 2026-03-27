@@ -1,26 +1,46 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { loginUser } from '../../services/authService'
 import useForm from '../../hooks/useForm'
 import useAsync from '../../hooks/useAsync'
-import { required, isEmail } from '../../utils/validators'
 import Input from '../../components/ui/Input'
 import Button from '../../components/ui/Button'
+import AuthLayout from './AuthLayout'
+import PasswordInput from './PasswordInput'
 import { ROUTES } from '../../constants'
 
+// Inline validators — avoids disk-write issue with src/utils/validators.js
+const isEmail   = v => (!v || !v.trim()) ? 'Email is required' : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? '' : 'Enter a valid email address'
+const required  = v => (v && v.toString().trim()) ? '' : 'This field is required'
+
+// ── Validation rules ──────────────────────────────────────
 const RULES = {
-  email:    v => isEmail(v),
-  password: v => required(v),
+  email:    isEmail,
+  password: required,
 }
 
+/**
+ * LoginForm
+ *
+ * Features:
+ *   - Per-field validation on submit (clears on change via useForm)
+ *   - API error displayed in alert banner
+ *   - Show/hide password toggle
+ *   - Redirects to the page the user was trying to reach (or dashboard)
+ *   - Demo hint for quick testing
+ */
 const LoginForm = () => {
   const { values, errors, handleChange, validateAll } = useForm(
     { email: '', password: '' },
-    RULES
+    RULES,
   )
   const { run, loading, error } = useAsync()
-  const { login } = useAuth()
-  const navigate  = useNavigate()
+  const { login }  = useAuth()
+  const navigate   = useNavigate()
+  const location   = useLocation()
+
+  // Redirect back to the page the user came from, or dashboard
+  const from = location.state?.from?.pathname || ROUTES.DASHBOARD
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -28,44 +48,102 @@ const LoginForm = () => {
     await run(async () => {
       const { user, token } = await loginUser(values)
       login(user, token)
-      navigate(ROUTES.DASHBOARD)
+      navigate(from, { replace: true })
     })
   }
 
   return (
-    <div className="auth-card p-4 p-md-5 shadow-sm">
-      <div className="text-center mb-4">
-        <i className="bi bi-tools text-primary" style={{ fontSize: '2.5rem' }} />
-        <h4 className="fw-bold mt-2">Welcome back</h4>
-        <p className="text-muted small">Sign in to your FixBhai account</p>
-      </div>
+    <AuthLayout
+      icon="tools"
+      title="Welcome back"
+      subtitle="Sign in to your FixBhai account"
+      error={error}
+      footerText="Don't have an account?"
+      footerLink={{ to: ROUTES.REGISTER, label: 'Sign up free' }}
+    >
+      <form onSubmit={handleSubmit} noValidate aria-label="Login form">
 
-      {error && <div className="alert alert-danger rounded-3 py-2 small">{error}</div>}
+        {/* Email */}
+        <Input
+          label="Email Address"
+          icon="envelope"
+          type="email"
+          name="email"
+          placeholder="you@example.com"
+          value={values.email}
+          onChange={handleChange}
+          error={errors.email}
+          autoComplete="email"
+          aria-required="true"
+        />
 
-      <form onSubmit={handleSubmit} noValidate>
-        <Input label="Email Address" icon="envelope" type="email" name="email"
-          placeholder="you@example.com" value={values.email}
-          onChange={handleChange} error={errors.email} />
+        {/* Password */}
+        <PasswordInput
+          label="Password"
+          name="password"
+          value={values.password}
+          onChange={handleChange}
+          error={errors.password}
+          placeholder="Enter your password"
+        />
 
-        <Input label="Password" icon="lock" type="password" name="password"
-          placeholder="Enter password" value={values.password}
-          onChange={handleChange} error={errors.password} />
-
-        <div className="d-flex justify-content-end mb-3">
-          <a href="#" className="small text-primary">Forgot password?</a>
+        {/* Forgot password */}
+        <div className="d-flex justify-content-end mb-4" style={{ marginTop: '-8px' }}>
+          <a href="#" className="small text-primary text-decoration-none">
+            Forgot password?
+          </a>
         </div>
 
-        <Button type="submit" loading={loading} className="w-100 py-2 rounded-3">
+        {/* Submit */}
+        <Button
+          type="submit"
+          block
+          rounded
+          loading={loading}
+          className="py-2 mb-3"
+        >
           Sign In
         </Button>
-      </form>
 
-      <p className="text-center text-muted small mt-4 mb-0">
-        Don't have an account?{' '}
-        <Link to={ROUTES.REGISTER} className="text-primary fw-semibold">Sign up</Link>
-      </p>
-    </div>
+        {/* Divider */}
+        <div className="d-flex align-items-center gap-3 mb-3">
+          <hr className="flex-grow-1 m-0" />
+          <span className="text-muted small">or</span>
+          <hr className="flex-grow-1 m-0" />
+        </div>
+
+        {/* Demo hint */}
+        <DemoHint onFill={() => {
+          handleChange({ target: { name: 'email',    value: 'demo@fixbhai.in' } })
+          handleChange({ target: { name: 'password', value: 'demo1234'        } })
+        }} />
+
+      </form>
+    </AuthLayout>
   )
 }
+
+// ── Demo hint ─────────────────────────────────────────────
+
+const DemoHint = ({ onFill }) => (
+  <div
+    className="rounded-3 p-3 d-flex align-items-center justify-content-between gap-2"
+    style={{ background: '#f8fafc', border: '1px dashed #cbd5e1' }}
+  >
+    <div>
+      <div className="small fw-semibold text-dark">Demo account</div>
+      <div className="text-muted" style={{ fontSize: '0.72rem' }}>
+        demo@fixbhai.in · any password
+      </div>
+    </div>
+    <button
+      type="button"
+      className="btn btn-sm btn-outline-primary rounded-pill px-3 flex-shrink-0"
+      onClick={onFill}
+    >
+      Fill in
+    </button>
+  </div>
+)
 
 export default LoginForm
