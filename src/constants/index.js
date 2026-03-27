@@ -1,12 +1,17 @@
 // ── Routes ──────────────────────────────────────────────
 export const ROUTES = {
-  HOME: '/',
-  SERVICES: '/services',
+  HOME:        '/',
+  SERVICES:    '/services',
   TECHNICIANS: '/technicians',
-  BOOKING: '/booking',
-  LOGIN: '/login',
-  REGISTER: '/register',
-  DASHBOARD: '/dashboard',
+  BOOKING:     '/booking',
+  LOGIN:       '/login',
+  REGISTER:    '/register',
+  DASHBOARD:   '/dashboard',
+  // Role-specific dashboards (future)
+  ADMIN:       '/admin',
+  TECH_PORTAL: '/technician',
+  // Catch-all
+  NOT_FOUND:   '*',
 }
 
 // ── Booking status map ───────────────────────────────────
