@@ -1,28 +1,29 @@
-import { SERVICES, TECHNICIANS } from '../api/data'
-
-/** Resolve service price and technician name from form values */
-export const resolveBookingDetails = ({ service, techId }) => {
-  const svc  = SERVICES.find(s => s.name === service)
-  const tech = TECHNICIANS.find(t => String(t.id) === String(techId))
-  return {
-    amount:     svc?.price || 299,
-    technician: tech?.name || 'Auto Assigned',
-  }
-}
+/**
+ * bookingService.js
+ *
+ * Business logic layer for bookings.
+ * Calls bookingApi — never touches axios or mock data directly.
+ */
+import { bookingApi } from '../api'
 
 /**
- * Simulate submitting a booking to the API.
- * Returns resolved details merged with the original form data.
+ * Submit a new booking from the BookingForm values.
+ * Returns the created booking object (with resolved technician + amount).
  */
-export const submitBooking = async (formData) => {
-  await new Promise(r => setTimeout(r, 1000))
-  const details = resolveBookingDetails(formData)
-  return {
-    ...details,
-    // Persist problem description fields
+export const submitBooking = (formData) =>
+  bookingApi.createBooking({
+    service:         formData.service,
+    techId:          formData.techId          || null,
+    date:            formData.date,
+    time:            formData.time,
+    address:         formData.address,
     problemCategory: formData.problemCategory || '',
     description:     formData.description     || '',
-    address:         formData.address         || '',
     notes:           formData.notes           || '',
-  }
-}
+  })
+
+export const fetchBookings     = ()         => bookingApi.getBookings()
+export const fetchBookingById  = (id)       => bookingApi.getBookingById(id)
+export const cancelBooking     = (id)       => bookingApi.cancelBooking(id)
+export const changeStatus      = (id, s)    => bookingApi.updateBookingStatus(id, s)
+export const rateBooking       = (id, data) => bookingApi.submitReview(id, data)
