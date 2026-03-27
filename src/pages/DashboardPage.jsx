@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useAuth }    from '../context/AuthContext'
 import { useBooking } from '../context/BookingContext'
 import DashboardSidebar from '../features/dashboard/DashboardSidebar'
-import OverviewTab from '../features/dashboard/OverviewTab'
-import BookingsTab from '../features/dashboard/BookingsTab'
-import ProfileTab from '../features/dashboard/ProfileTab'
-import { DASHBOARD_NAV, ROUTES } from '../constants'
+import DashboardTopBar  from '../features/dashboard/DashboardTopBar'
+import OverviewTab      from '../features/dashboard/OverviewTab'
+import BookingsTab      from '../features/dashboard/BookingsTab'
+import ProfileTab       from '../features/dashboard/ProfileTab'
+import { ROUTES } from '../constants'
 
 const TAB_COMPONENTS = {
   overview: OverviewTab,
@@ -14,16 +15,21 @@ const TAB_COMPONENTS = {
   profile:  ProfileTab,
 }
 
+/**
+ * DashboardPage
+ * Assembles sidebar + top bar + active tab.
+ * Contains zero UI markup — all layout is delegated to feature components.
+ */
 const DashboardPage = () => {
-  const { user, logout }              = useAuth()
+  const { user, logout }                     = useAuth()
   const { bookings, updateStatus, getStats } = useBooking()
-  const navigate                      = useNavigate()
-  const [activeTab, setActiveTab]     = useState('overview')
+  const navigate                             = useNavigate()
+  const [activeTab, setActiveTab]            = useState('overview')
 
   if (!user) { navigate(ROUTES.LOGIN); return null }
 
-  const stats       = getStats()
-  const ActiveTab   = TAB_COMPONENTS[activeTab]
+  const stats      = getStats()
+  const ActiveTab  = TAB_COMPONENTS[activeTab]
   const handleLogout = () => { logout(); navigate(ROUTES.HOME) }
 
   return (
@@ -35,33 +41,12 @@ const DashboardPage = () => {
       />
 
       <div className="flex-grow-1 overflow-auto">
-        {/* Top bar */}
-        <div className="bg-white border-bottom px-4 py-3 d-flex align-items-center justify-content-between sticky-top">
-          <h5 className="fw-bold mb-0">
-            {DASHBOARD_NAV.find(n => n.key === activeTab)?.label}
-          </h5>
-          <div className="d-flex align-items-center gap-3">
-            {/* Mobile tab switcher */}
-            <div className="d-flex d-lg-none gap-1">
-              {DASHBOARD_NAV.map(item => (
-                <button key={item.key}
-                  className={`btn btn-sm rounded-pill ${activeTab === item.key ? 'btn-primary' : 'btn-outline-secondary'}`}
-                  onClick={() => setActiveTab(item.key)}>
-                  <i className={`bi bi-${item.icon}`} />
-                </button>
-              ))}
-            </div>
-            <div className="d-flex align-items-center gap-2">
-              <div className="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold"
-                style={{ width: 36, height: 36, fontSize: '0.9rem' }}>
-                {user.name?.charAt(0).toUpperCase()}
-              </div>
-              <span className="fw-semibold d-none d-md-inline">{user.name}</span>
-            </div>
-          </div>
-        </div>
+        <DashboardTopBar
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          user={user}
+        />
 
-        {/* Active tab content */}
         <div className="p-4">
           <ActiveTab
             user={user}

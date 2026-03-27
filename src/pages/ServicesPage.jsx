@@ -1,23 +1,27 @@
 import { useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import ServiceGrid from '../features/services/ServiceGrid'
+import ServiceGrid   from '../features/services/ServiceGrid'
 import ServiceSearch from '../features/services/ServiceSearch'
-import SectionHeader from '../components/common/SectionHeader'
-import useFilter from '../hooks/useFilter'
-import { SERVICES } from '../api/data'
+import PageHeader    from '../components/common/PageHeader'
+import useFilter     from '../hooks/useFilter'
+import { SERVICES }  from '../api/data'
 
-// Pure filter function — no UI coupling
+// Pure filter — no UI coupling, lives at module level
 const filterFn = (item, filters, query) => {
   const matchQ = item.name.toLowerCase().includes(query.toLowerCase())
-  const matchC = !filters.category || filters.category === 'All' || item.category === filters.category
+  const matchC = !filters.category || filters.category === 'All'
+    || item.category === filters.category
   return matchQ && matchC
 }
 
+/**
+ * ServicesPage
+ * Assembles ServiceSearch + ServiceGrid. Contains zero UI markup.
+ */
 const ServicesPage = () => {
   const [params] = useSearchParams()
   const { result, query, setQuery, filters, setFilters } = useFilter(SERVICES, filterFn)
 
-  // Pre-fill query from URL param on mount
   useEffect(() => {
     const q = params.get('q')
     if (q) setQuery(q)
@@ -25,11 +29,10 @@ const ServicesPage = () => {
 
   return (
     <div className="container py-5">
-      <SectionHeader
+      <PageHeader
         title="All Services"
         subtitle="Find the right service for your home"
       />
-
       <ServiceSearch
         query={query}
         onQueryChange={setQuery}
@@ -37,7 +40,6 @@ const ServicesPage = () => {
         onCategoryChange={cat => setFilters({ category: cat })}
         resultCount={result.length}
       />
-
       <ServiceGrid
         services={result}
         emptyText={query ? `No results for "${query}"` : 'No services available'}

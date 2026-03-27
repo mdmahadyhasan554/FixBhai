@@ -1,11 +1,16 @@
 import BookingForm from '../features/bookings/BookingForm'
+import PageHeader  from '../components/common/PageHeader'
 
+/**
+ * BookingPage
+ * Assembles PageHeader + BookingForm. Contains zero UI markup.
+ */
 const BookingPage = () => (
   <div className="container py-5">
-    <div className="mb-4">
-      <h2 className="section-title mb-1">Book a Service</h2>
-      <p className="section-sub">Schedule a visit from our expert technicians</p>
-    </div>
+    <PageHeader
+      title="Book a Service"
+      subtitle="Schedule a visit from our expert technicians"
+    />
     <div className="row justify-content-center">
       <div className="col-lg-9">
         <BookingForm />
