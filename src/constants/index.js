@@ -42,11 +42,46 @@ export const STAT_CARDS = [
   { label: 'Total Spent',    icon: 'wallet2',         gradient: 'linear-gradient(135deg,#7c3aed,#8b5cf6)', key: 'spent'    },
 ]
 
-// ── Dashboard nav items ──────────────────────────────────
+// ── Customer dashboard nav ───────────────────────────────
 export const DASHBOARD_NAV = [
   { key: 'overview',  icon: 'grid',           label: 'Overview'     },
   { key: 'bookings',  icon: 'calendar-check', label: 'My Bookings'  },
   { key: 'profile',   icon: 'person-circle',  label: 'Profile'      },
+]
+
+// ── Admin dashboard nav ──────────────────────────────────
+export const ADMIN_NAV = [
+  { key: 'overview',     icon: 'grid',           label: 'Overview'      },
+  { key: 'bookings',     icon: 'calendar-check', label: 'All Bookings'  },
+  { key: 'users',        icon: 'people',         label: 'Users'         },
+  { key: 'technicians',  icon: 'person-badge',   label: 'Technicians'   },
+  { key: 'services',     icon: 'tools',          label: 'Services'      },
+  { key: 'analytics',    icon: 'bar-chart',      label: 'Analytics'     },
+]
+
+// ── Technician dashboard nav ─────────────────────────────
+export const TECH_NAV = [
+  { key: 'overview',     icon: 'grid',           label: 'Overview'      },
+  { key: 'jobs',         icon: 'briefcase',      label: 'My Jobs'       },
+  { key: 'schedule',     icon: 'calendar3',      label: 'Schedule'      },
+  { key: 'earnings',     icon: 'wallet2',        label: 'Earnings'      },
+  { key: 'profile',      icon: 'person-circle',  label: 'Profile'       },
+]
+
+// ── Admin stat cards ─────────────────────────────────────
+export const ADMIN_STAT_CARDS = [
+  { label: 'Total Revenue',    icon: 'currency-rupee', gradient: 'linear-gradient(135deg,#2563eb,#3b82f6)', key: 'revenue'     },
+  { label: 'Total Bookings',   icon: 'calendar-check', gradient: 'linear-gradient(135deg,#059669,#10b981)', key: 'bookings'    },
+  { label: 'Active Users',     icon: 'people-fill',    gradient: 'linear-gradient(135deg,#d97706,#f59e0b)', key: 'users'       },
+  { label: 'Technicians',      icon: 'person-badge',   gradient: 'linear-gradient(135deg,#7c3aed,#8b5cf6)', key: 'technicians' },
+]
+
+// ── Technician stat cards ────────────────────────────────
+export const TECH_STAT_CARDS = [
+  { label: 'Jobs Today',       icon: 'calendar-day',   gradient: 'linear-gradient(135deg,#2563eb,#3b82f6)', key: 'today'       },
+  { label: 'Completed',        icon: 'patch-check',    gradient: 'linear-gradient(135deg,#059669,#10b981)', key: 'completed'   },
+  { label: 'This Month',       icon: 'calendar-month', gradient: 'linear-gradient(135deg,#d97706,#f59e0b)', key: 'month'       },
+  { label: 'Total Earnings',   icon: 'wallet2',        gradient: 'linear-gradient(135deg,#7c3aed,#8b5cf6)', key: 'earnings'    },
 ]
 
 // ── Homepage stats ───────────────────────────────────────

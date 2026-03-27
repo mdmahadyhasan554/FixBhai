@@ -394,3 +394,20 @@ a { text-decoration: none; }
   box-shadow: 0 8px 24px rgba(37,99,235,0.1);
   transform: translateY(-3px);
 }
+
+/* ── Activity feed ───────────────────────────────────── */
+.activity-feed { }
+.activity-item { position: relative; }
+.activity-icon { position: relative; }
+.activity-line {
+  position: absolute;
+  left: 50%;
+  top: 36px;
+  bottom: 0;
+  width: 1px;
+  background: #e2e8f0;
+  transform: translateX(-50%);
+}
+
+/* ── Dashboard shell sidebar ─────────────────────────── */
+.fw-mono { font-family: 'Courier New', monospace; }
