@@ -184,6 +184,18 @@ export const TRUST_BADGES = [
   { icon: 'cash-coin',        label: 'Pay After Service',    desc: 'No upfront payment required'     },
 ]
 
+// ── Service colour map (used by BookingCard, HeroSection, AdminOverviewTab) ──
+export const SERVICE_COLOURS = {
+  'AC Repair':    { bg: '#dbeafe', color: '#2563eb', icon: 'wind'             },
+  'Plumbing':     { bg: '#d1fae5', color: '#059669', icon: 'droplet'          },
+  'Electrical':   { bg: '#fef3c7', color: '#d97706', icon: 'lightning-charge' },
+  'Cleaning':     { bg: '#ede9fe', color: '#7c3aed', icon: 'stars'            },
+  'Painting':     { bg: '#fce7f3', color: '#db2777', icon: 'brush'            },
+  'Carpentry':    { bg: '#ffedd5', color: '#ea580c', icon: 'hammer'           },
+  'Pest Control': { bg: '#dcfce7', color: '#16a34a', icon: 'bug'              },
+  'CCTV Install': { bg: '#e0f2fe', color: '#0284c7', icon: 'camera-video'     },
+}
+
 // ── How it works steps ───────────────────────────────────
 export const HOW_IT_WORKS = [
   { step: 1, title: 'Choose a Service', desc: 'Browse from 25+ home services',      icon: 'grid'          },

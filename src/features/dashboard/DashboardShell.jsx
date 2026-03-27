@@ -1,5 +1,9 @@
 import { Link } from 'react-router-dom'
 import { ROUTES } from '../../constants'
+import UserAvatar from '../../components/common/UserAvatar'
+
+// Sidebar width — defined once, used in both sidebar and main offset
+const SIDEBAR_W = 248
 
 /**
  * DashboardShell
@@ -35,7 +39,7 @@ const DashboardShell = ({
       {/* ── Sidebar ── */}
       <aside
         className="d-none d-lg-flex flex-column"
-        style={{ width: 248, flexShrink: 0, background: '#0f172a' }}
+        style={{ width: SIDEBAR_W, flexShrink: 0, background: '#0f172a' }}
         aria-label="Dashboard navigation"
       >
         {/* Brand */}
@@ -135,7 +139,7 @@ const DashboardShell = ({
   )
 }
 
-// ── Micro-components ──────────────────────────────────────
+// ── SidebarItem ───────────────────────────────────────────
 
 const SidebarItem = ({ item, active, accentColor, onClick }) => (
   <button
@@ -155,14 +159,5 @@ const SidebarItem = ({ item, active, accentColor, onClick }) => (
   </button>
 )
 
-export const UserAvatar = ({ name, size = 36, bg = '#2563eb' }) => (
-  <div
-    className="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0"
-    style={{ width: size, height: size, background: bg, fontSize: size * 0.38 }}
-    aria-hidden="true"
-  >
-    {name?.charAt(0).toUpperCase() || '?'}
-  </div>
-)
-
+export { UserAvatar }
 export default DashboardShell

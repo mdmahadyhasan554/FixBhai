@@ -24,7 +24,7 @@ const TechnicianCard = ({ tech, compact = false }) => {
   const handleBook = () =>
     navigate(buildBookingUrl({ service: tech.service, techId: tech.id }))
 
-  if (compact) return <TechnicianCardCompact tech={tech} onBook={handleBook} onProfile={() => setProfileOpen(true)} />
+  if (compact) return <TechnicianCardCompact tech={tech} onBook={handleBook} />
 
   return (
     <>
@@ -120,9 +120,8 @@ const TechnicianCard = ({ tech, compact = false }) => {
   )
 }
 
-// ── Compact variant ───────────────────────────────────────
-
-const TechnicianCardCompact = ({ tech, onBook, onProfile }) => (
+// Compact variant — slim horizontal layout for sidebars and homepage previews
+const TechnicianCardCompact = ({ tech, onBook }) => (
   <div className="d-flex align-items-center gap-3 p-3 rounded-4 bg-white border"
     style={{ borderColor: '#f1f5f9' }}>
     <TechAvatar src={tech.avatar} name={tech.name} size={48} />

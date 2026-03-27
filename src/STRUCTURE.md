@@ -1,6 +1,87 @@
 # FixBhai — Source Folder Structure
 
 Component-based architecture following the **UI → Features → Pages → App** pattern.
+
+---
+
+## `src/components/ui/`
+Primitive, stateless UI building blocks. Zero business logic.
+`Button` `Input` `Card` `Badge` `Modal` `Spinner` + barrel `index.js`
+
+## `src/components/layout/`
+App shell: `Navbar` `Footer` `Layout` + barrel `index.js`
+
+## `src/components/common/`
+Shared app-aware components used across multiple features.
+`SectionHeader` `EmptyState` `StatCard` `StatusBadge` `PageHeader`
+`UserAvatar` `ProtectedRoute` `GuestRoute` `ErrorBoundary` + barrel `index.js`
+
+## `src/features/home/`
+Homepage sections: `HeroSection` `CategoryStrip` `StatsBar` `HowItWorks`
+`TrustBanner` `TestimonialsSection` `CtaSection`
+
+## `src/features/services/`
+`ServiceCard` `ServiceGrid` `ServiceSearch`
+
+## `src/features/technicians/`
+`TechnicianCard` (exports `StarRating`) `TechnicianList` `TechnicianFilter` `TechnicianSearch`
+
+## `src/features/bookings/`
+`BookingForm` `BookingCard` `BookingList` + barrel `index.js`
+
+## `src/features/auth/`
+`LoginForm` `RegisterForm` `AuthLayout` `PasswordInput` + barrel `index.js`
+
+## `src/features/dashboard/`
+Shared: `DashboardShell` (exports `UserAvatar`) `StatGrid` `DataTable` `ActivityFeed`
+Customer tabs: `OverviewTab` `BookingsTab` `ProfileTab`
+Admin tabs: `admin/AdminOverviewTab` `admin/AdminBookingsTab` `admin/AdminAnalyticsTab`
+Tech tabs: `technician/TechOverviewTab`
+
+## `src/pages/`
+Thin route-level orchestrators — zero UI markup.
+`HomePage` `ServicesPage` `TechniciansPage` `BookingPage`
+`LoginPage` `RegisterPage` `DashboardPage`
+`AdminPage` `TechnicianPortalPage` `NotFoundPage`
+
+## `src/hooks/`
+`useForm` `useFilter` `useAsync` `useApi` `useLocalStorage`
+
+## `src/context/`
+`AuthContext` `BookingContext` `ToastContext` + barrel `index.js`
+
+## `src/api/`
+`client.js` (Axios + token refresh) `mock.js` `authApi` `serviceApi` `technicianApi` `bookingApi` + barrel `index.js`
+
+## `src/services/`
+`authService` `bookingService` `technicianService` `serviceService`
+
+## `src/routes/`
+`index.jsx` — single source of truth for all routes
+
+## `src/utils/`
+`formatters.js` `passwordStrength.js` `validators.js` (written via PowerShell)
+
+## `src/constants/`
+`index.js` — all static data: routes, nav items, service colours, stat cards, etc.
+
+## Dependency Flow (arrows point downward only)
+```
+utils/ constants/ api/data.js  ← no dependencies
+services/                      ← api/
+hooks/                         ← utils/
+context/                       ← hooks/ + services/
+components/ui/                 ← no app deps
+components/common/             ← ui/ + context/ + constants/
+components/layout/             ← ui/ + context/
+features/                      ← ui/ + common/ + hooks/ + context/ + services/ + constants/
+pages/                         ← features/ + common/ + hooks/ + context/ + constants/
+routes/                        ← pages/ + common/ + constants/
+App.jsx                        ← routes/ + context/ + common/
+```
+
+
+Component-based architecture following the **UI → Features → Pages → App** pattern.
 Each folder has a single, clear responsibility. Nothing leaks into the wrong layer.
 
 ---

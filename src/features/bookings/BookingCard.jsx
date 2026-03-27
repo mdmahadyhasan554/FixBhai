@@ -2,6 +2,7 @@ import Card from '../../components/ui/Card'
 import Button from '../../components/ui/Button'
 import StatusBadge from '../../components/common/StatusBadge'
 import { formatDate } from '../../utils/formatters'
+import { SERVICE_COLOURS } from '../../constants'
 
 /**
  * BookingCard
@@ -83,7 +84,8 @@ const BookingCard = ({ booking, onCancel, onRate, compact = false }) => {
 
 // ── Compact variant ───────────────────────────────────────
 
-const BookingCardCompact = ({ booking, onCancel }) => (
+// Compact single-line variant — used in dashboard overview recent bookings
+const BookingCardCompact = ({ booking }) => (
   <div className="d-flex align-items-center gap-3 p-3 rounded-4 bg-white border"
     style={{ borderColor: '#f1f5f9' }}>
     <ServiceIconBubble service={booking.service} size={40} />
@@ -151,17 +153,7 @@ const BookingActions = ({ booking, onCancel, onRate }) => {
 
 // ── Micro-components ──────────────────────────────────────
 
-const SERVICE_COLOURS = {
-  'AC Repair':    { bg: '#dbeafe', color: '#2563eb', icon: 'wind'             },
-  'Plumbing':     { bg: '#d1fae5', color: '#059669', icon: 'droplet'          },
-  'Electrical':   { bg: '#fef3c7', color: '#d97706', icon: 'lightning-charge' },
-  'Cleaning':     { bg: '#ede9fe', color: '#7c3aed', icon: 'stars'            },
-  'Painting':     { bg: '#fce7f3', color: '#db2777', icon: 'brush'            },
-  'Carpentry':    { bg: '#ffedd5', color: '#ea580c', icon: 'hammer'           },
-  'Pest Control': { bg: '#dcfce7', color: '#16a34a', icon: 'bug'              },
-  'CCTV Install': { bg: '#e0f2fe', color: '#0284c7', icon: 'camera-video'     },
-}
-
+// ServiceIconBubble uses the centralised SERVICE_COLOURS map from constants
 const ServiceIconBubble = ({ service, size = 48 }) => {
   const meta = SERVICE_COLOURS[service] || { bg: '#f1f5f9', color: '#64748b', icon: 'tools' }
   return (
