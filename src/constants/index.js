@@ -95,6 +95,27 @@ export const TECH_SORT_OPTIONS = [
   { value: 'reviews',    label: 'Most Reviewed'       },
 ]
 
+// ── Booking form steps ───────────────────────────────────
+export const BOOKING_STEPS = ['Service', 'Schedule', 'Confirm']
+
+export const BOOKING_STATUS_FILTERS = [
+  { value: 'all',       label: 'All'       },
+  { value: 'pending',   label: 'Pending'   },
+  { value: 'confirmed', label: 'Confirmed' },
+  { value: 'completed', label: 'Completed' },
+  { value: 'cancelled', label: 'Cancelled' },
+]
+
+export const PROBLEM_CATEGORIES = [
+  'Not working / broken',
+  'Making noise',
+  'Leaking / dripping',
+  'Needs servicing / maintenance',
+  'Installation required',
+  'Inspection / checkup',
+  'Other',
+]
+
 // ── How it works steps ───────────────────────────────────
 export const HOW_IT_WORKS = [
   { step: 1, title: 'Choose a Service', desc: 'Browse from 25+ home services',      icon: 'grid'          },

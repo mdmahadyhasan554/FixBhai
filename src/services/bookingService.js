@@ -10,8 +10,19 @@ export const resolveBookingDetails = ({ service, techId }) => {
   }
 }
 
-/** Simulate submitting a booking to the API */
+/**
+ * Simulate submitting a booking to the API.
+ * Returns resolved details merged with the original form data.
+ */
 export const submitBooking = async (formData) => {
   await new Promise(r => setTimeout(r, 1000))
-  return resolveBookingDetails(formData)
+  const details = resolveBookingDetails(formData)
+  return {
+    ...details,
+    // Persist problem description fields
+    problemCategory: formData.problemCategory || '',
+    description:     formData.description     || '',
+    address:         formData.address         || '',
+    notes:           formData.notes           || '',
+  }
 }

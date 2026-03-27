@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 import StatCard from '../../components/common/StatCard'
-import BookingTable from './BookingTable'
-import EmptyState from '../../components/common/EmptyState'
+import BookingList from '../bookings/BookingList'
 import { STAT_CARDS, ROUTES } from '../../constants'
 
 const QUICK_ACTIONS = [
@@ -32,11 +31,12 @@ const OverviewTab = ({ user, stats, bookings, onViewAll, onCancel }) => (
             View All
           </button>
         </div>
-        {bookings.length === 0
-          ? <EmptyState icon="calendar-x" title="No bookings yet"
-              action={<Link to={ROUTES.BOOKING} className="btn btn-primary btn-sm rounded-pill">Book a Service</Link>} />
-          : <BookingTable bookings={bookings.slice(0, 3)} onCancel={onCancel} />
-        }
+        <BookingList
+          bookings={bookings.slice(0, 3)}
+          onCancel={onCancel}
+          compact
+          showFilter={false}
+        />
       </div>
     </div>
 
