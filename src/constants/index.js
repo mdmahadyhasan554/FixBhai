@@ -52,6 +52,29 @@ export const HOME_STATS = [
   { value: '4.8★', label: 'Average Rating',     icon: 'star'        },
 ]
 
+// ── Navbar links ─────────────────────────────────────────
+export const NAV_LINKS = [
+  { to: '/',            label: 'Home'        },
+  { to: '/services',    label: 'Services'    },
+  { to: '/technicians', label: 'Technicians' },
+  { to: '/booking',     label: 'Book Now'    },
+]
+
+// ── Footer config ─────────────────────────────────────────
+export const FOOTER_SERVICES = ['AC Repair', 'Plumbing', 'Electrical', 'Cleaning', 'Painting']
+export const FOOTER_COMPANY  = ['About Us', 'Careers', 'Blog', 'Press', 'Contact']
+export const FOOTER_SOCIAL   = [
+  { name: 'facebook',  href: '#' },
+  { name: 'twitter',   href: '#' },
+  { name: 'instagram', href: '#' },
+  { name: 'linkedin',  href: '#' },
+]
+export const FOOTER_CONTACT = [
+  { icon: 'telephone', text: '+91 98765 43210' },
+  { icon: 'envelope',  text: 'support@fixbhai.in' },
+  { icon: 'geo-alt',   text: 'Mumbai, Maharashtra, India' },
+]
+
 // ── How it works steps ───────────────────────────────────
 export const HOW_IT_WORKS = [
   { step: 1, title: 'Choose a Service', desc: 'Browse from 25+ home services',      icon: 'grid'          },
