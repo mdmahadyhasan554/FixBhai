@@ -1,55 +1,38 @@
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { loginUser } from '../../services/authService'
 import useForm from '../../hooks/useForm'
-import useAsync from '../../hooks/useAsync'
 import Input from '../../components/ui/Input'
 import Button from '../../components/ui/Button'
 import AuthLayout from './AuthLayout'
 import PasswordInput from './PasswordInput'
 import { ROUTES } from '../../constants'
 
-// Inline validators — avoids disk-write issue with src/utils/validators.js
-const isEmail   = v => (!v || !v.trim()) ? 'Email is required' : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? '' : 'Enter a valid email address'
-const required  = v => (v && v.toString().trim()) ? '' : 'This field is required'
+// Inline validators
+const isEmail  = v => (!v || !v.trim()) ? 'Email is required' : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? '' : 'Enter a valid email address'
+const required = v => (v && v.toString().trim()) ? '' : 'This field is required'
 
-// ── Validation rules ──────────────────────────────────────
-const RULES = {
-  email:    isEmail,
-  password: required,
-}
+const RULES = { email: isEmail, password: required }
 
 /**
- * LoginForm
- *
- * Features:
- *   - Per-field validation on submit (clears on change via useForm)
- *   - API error displayed in alert banner
- *   - Show/hide password toggle
- *   - Redirects to the page the user was trying to reach (or dashboard)
- *   - Demo hint for quick testing
+ * LoginForm — uses AuthContext.login() which owns loading + error state.
  */
 const LoginForm = () => {
-  const { values, errors, handleChange, validateAll } = useForm(
-    { email: '', password: '' },
-    RULES,
-  )
-  const { run, loading, error } = useAsync()
-  const { login }  = useAuth()
-  const navigate   = useNavigate()
-  const location   = useLocation()
-
-  // Redirect back to the page the user came from, or dashboard
-  const from = location.state?.from?.pathname || ROUTES.DASHBOARD
+  const { values, errors, handleChange, validateAll } = useForm({ email: '', password: '' }, RULES)
+  const { login, loading, error, clearError } = useAuth()
+  const navigate  = useNavigate()
+  const location  = useLocation()
+  const from      = location.state?.from?.pathname || ROUTES.DASHBOARD
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    clearError()
     if (!validateAll()) return
-    await run(async () => {
-      const { user, token } = await loginUser(values)
-      login(user, token)
+    try {
+      await login(values)
       navigate(from, { replace: true })
-    })
+    } catch {
+      // error already set in context
+    }
   }
 
   return (

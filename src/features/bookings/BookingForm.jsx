@@ -2,7 +2,6 @@ import { useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useBooking } from '../../context/BookingContext'
-import { submitBooking } from '../../services/bookingService'
 import useForm from '../../hooks/useForm'
 import useAsync from '../../hooks/useAsync'
 import { SERVICES } from '../../api/data'
@@ -44,17 +43,10 @@ const BookingForm = () => {
     : (!values.date || !values.time || !values.address || !values.problemCategory) ? 1
     : 2
 
+  // addBooking in context handles API call + optimistic update
   const handleSubmit = () => run(async () => {
     if (!user) { navigate(ROUTES.LOGIN); return }
-    const details = await submitBooking(values)
-    addBooking({
-      service:         values.service,
-      date:            values.date,
-      time:            values.time,
-      problemCategory: values.problemCategory,
-      description:     values.description,
-      ...details,
-    })
+    await addBooking(values)
     navigate(ROUTES.DASHBOARD)
   })
 

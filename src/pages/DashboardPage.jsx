@@ -21,8 +21,8 @@ const TAB_COMPONENTS = {
  * Contains zero UI markup — all layout is delegated to feature components.
  */
 const DashboardPage = () => {
-  const { user, logout }                     = useAuth()
-  const { bookings, updateStatus, getStats } = useBooking()
+  const { user, logout }                              = useAuth()
+  const { bookings, updateStatus, cancelBooking, getStats } = useBooking()
   const navigate                             = useNavigate()
   const [activeTab, setActiveTab]            = useState('overview')
 
@@ -53,7 +53,7 @@ const DashboardPage = () => {
             stats={stats}
             bookings={bookings}
             onViewAll={() => setActiveTab('bookings')}
-            onCancel={id => updateStatus(id, 'cancelled')}
+            onCancel={id => cancelBooking(id)}
             onLogout={handleLogout}
           />
         </div>

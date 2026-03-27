@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { registerUser } from '../../services/authService'
 import useAsync from '../../hooks/useAsync'
 import Input from '../../components/ui/Input'
 import Button from '../../components/ui/Button'
@@ -9,10 +8,10 @@ import AuthLayout from './AuthLayout'
 import PasswordInput from './PasswordInput'
 import { ROUTES } from '../../constants'
 
-// Inline validators — avoids disk-write issue with src/utils/validators.js
-const required        = v => (v && v.toString().trim()) ? '' : 'This field is required'
-const isEmail         = v => (!v || !v.trim()) ? 'Email is required' : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? '' : 'Enter a valid email address'
-const isPhone         = v => (!v || !v.trim()) ? 'Phone number is required' : /^[+]?[\d\s\-().]{7,15}$/.test(v.trim()) ? '' : 'Enter a valid phone number'
+// Inline validators
+const required         = v => (v && v.toString().trim()) ? '' : 'This field is required'
+const isEmail          = v => (!v || !v.trim()) ? 'Email is required' : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? '' : 'Enter a valid email address'
+const isPhone          = v => (!v || !v.trim()) ? 'Phone number is required' : /^[+]?[\d\s\-().]{7,15}$/.test(v.trim()) ? '' : 'Enter a valid phone number'
 const isStrongPassword = v => {
   if (!v) return 'Password is required'
   if (v.length < 8) return 'Password must be at least 8 characters'
@@ -25,24 +24,14 @@ const matchesField = (other) => v => v === other ? '' : 'Passwords do not match'
 const INITIAL = { name: '', email: '', phone: '', password: '', confirmPassword: '', terms: false }
 
 /**
- * RegisterForm
- *
- * Features:
- *   - Full name, email, phone, password, confirm password
- *   - Per-field inline validation — runs on submit, clears on change
- *   - Password strength meter
- *   - Confirm password match validation (dynamic — depends on password value)
- *   - Terms & conditions checkbox
- *   - API error in alert banner
+ * RegisterForm — uses AuthContext.register() which owns loading + error state.
  */
 const RegisterForm = () => {
   const [values, setValues] = useState(INITIAL)
   const [errors, setErrors] = useState({})
-  const { run, loading, error } = useAsync()
-  const { login }  = useAuth()
-  const navigate   = useNavigate()
+  const { register, loading, error, clearError } = useAuth()
+  const navigate = useNavigate()
 
-  // Update a single field and clear its error
   const set = (name, value) => {
     setValues(prev => ({ ...prev, [name]: value }))
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }))
@@ -53,7 +42,6 @@ const RegisterForm = () => {
     set(name, type === 'checkbox' ? checked : value)
   }
 
-  // Build rules dynamically so confirmPassword can reference current password
   const validate = () => {
     const rules = {
       name:            required,
@@ -75,12 +63,14 @@ const RegisterForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    clearError()
     if (!validate()) return
-    await run(async () => {
-      const { user, token } = await registerUser(values)
-      login(user, token)
+    try {
+      await register(values)
       navigate(ROUTES.DASHBOARD)
-    })
+    } catch {
+      // error already set in context
+    }
   }
 
   return (
