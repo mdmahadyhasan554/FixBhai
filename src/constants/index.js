@@ -110,9 +110,9 @@ export const FOOTER_SOCIAL   = [
   { name: 'linkedin',  href: '#' },
 ]
 export const FOOTER_CONTACT = [
-  { icon: 'telephone', text: '+91 98765 43210' },
-  { icon: 'envelope',  text: 'support@fixbhai.in' },
-  { icon: 'geo-alt',   text: 'Mumbai, Maharashtra, India' },
+  { icon: 'telephone', text: '01909045166' },
+  { icon: 'envelope',  text: 'support@fixbhai.com' },
+  { icon: 'geo-alt',   text: 'Savar, Dhaka, Bangladesh' },
 ]
 
 // ── Technician filter options ────────────────────────────

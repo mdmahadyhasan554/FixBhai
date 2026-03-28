@@ -8,10 +8,16 @@ import AuthLayout from './AuthLayout'
 import PasswordInput from './PasswordInput'
 import { ROUTES } from '../../constants'
 
-// Inline validators
+// Inline validators — Bangladesh localised
 const required         = v => (v && v.toString().trim()) ? '' : 'This field is required'
 const isEmail          = v => (!v || !v.trim()) ? 'Email is required' : /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? '' : 'Enter a valid email address'
-const isPhone          = v => (!v || !v.trim()) ? 'Phone number is required' : /^[+]?[\d\s\-().]{7,15}$/.test(v.trim()) ? '' : 'Enter a valid phone number'
+// BD phone: must start with 01, exactly 11 digits
+const isPhone          = v => {
+  if (!v || !v.trim()) return 'Phone number is required'
+  const clean = v.replace(/\s/g, '')
+  if (!/^01[0-9]{9}$/.test(clean)) return 'Enter a valid BD number (01XXXXXXXXX)'
+  return ''
+}
 const isStrongPassword = v => {
   if (!v) return 'Password is required'
   if (v.length < 8) return 'Password must be at least 8 characters'
@@ -117,12 +123,13 @@ const RegisterForm = () => {
           icon="telephone"
           type="tel"
           name="phone"
-          placeholder="+91 98765 43210"
+          placeholder="01XXXXXXXXX"
           value={values.phone}
           onChange={handleChange}
           error={errors.phone}
           autoComplete="tel"
-          hint="We'll send booking confirmations to this number"
+          hint="Bangladeshi mobile number (e.g. 01712345678)"
+          maxLength={11}
           aria-required="true"
         />
 

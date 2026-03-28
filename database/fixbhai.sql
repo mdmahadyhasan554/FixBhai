@@ -21,7 +21,7 @@ CREATE TABLE users (
   id            INT UNSIGNED    NOT NULL AUTO_INCREMENT,
   name          VARCHAR(100)    NOT NULL,
   email         VARCHAR(150)    NOT NULL UNIQUE,
-  phone         VARCHAR(20)     NOT NULL,
+  phone         VARCHAR(11)     NOT NULL,           -- BD format: 01XXXXXXXXX
   password_hash VARCHAR(255)    NOT NULL,
   role          ENUM('customer','technician','admin') NOT NULL DEFAULT 'customer',
   avatar_url    VARCHAR(500)    NULL,
@@ -141,6 +141,8 @@ CREATE TABLE bookings (
   notes            TEXT            NULL,
   amount           DECIMAL(10,2)   NOT NULL DEFAULT 0.00,
   payment_status   ENUM('unpaid','paid','refunded') NOT NULL DEFAULT 'unpaid',
+  payment_method   ENUM('cash','bkash','nagad','rocket') NULL,  -- future: mobile banking
+  transaction_id   VARCHAR(100)    NULL,                         -- bKash/Nagad txn ID
   cancelled_reason TEXT            NULL,
   created_at       TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at       TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

@@ -52,9 +52,10 @@ export const generateBookingId = (count) =>
   `BK${String(count + 1).padStart(3, '0')}`
 
 /**
- * Validate a Bangladeshi phone number (01XXXXXXXXX — 11 digits).
+ * Validate a Bangladeshi phone number.
+ * Rule: starts with 01, exactly 11 digits — regex ^01[0-9]{9}$
  * @param {string} phone
  * @returns {boolean}
  */
 export const isBDPhone = (phone = '') =>
-  /^01[3-9]\d{8}$/.test(phone.replace(/\s/g, ''))
+  /^01[0-9]{9}$/.test(phone.replace(/\s/g, ''))

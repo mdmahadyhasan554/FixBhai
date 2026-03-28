@@ -88,3 +88,12 @@ function requireAuth(): array {
     if (!$payload) error('Unauthorized', 401);
     return $payload;
 }
+
+/**
+ * Validate a Bangladeshi phone number.
+ * Rule: ^01[0-9]{9}$ — starts with 01, exactly 11 digits.
+ */
+function isValidBDPhone(string $phone): bool {
+    $clean = preg_replace('/\s+/', '', $phone);
+    return (bool) preg_match('/^01[0-9]{9}$/', $clean);
+}

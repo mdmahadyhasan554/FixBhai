@@ -205,7 +205,7 @@ const ScheduleStep = ({ values, setValue, onBack }) => {
             id="booking-address"
             className="form-control rounded-3"
             rows={3}
-            placeholder="Flat no., building, street, area, city..."
+            placeholder="e.g. House 12, Road 5, Dhanmondi, Dhaka"
             value={values.address}
             onChange={e => setValue('address', e.target.value)}
             aria-required="true"
