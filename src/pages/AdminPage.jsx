@@ -30,7 +30,7 @@ const AdminPage = () => {
 
   const stats = getStats()
   const adminStats = {
-    revenue:     `₹${bookings.filter(b => b.status === 'completed').reduce((s, b) => s + (b.amount || 0), 0)}`,
+    revenue:     `৳${bookings.filter(b => b.status === 'completed').reduce((s, b) => s + (b.amount || 0), 0)}`,
     bookings:    bookings.length,
     users:       '1,240',
     technicians: TECH_DATA.length,

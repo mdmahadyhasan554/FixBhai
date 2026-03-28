@@ -24,7 +24,7 @@ const CtaSection = () => {
               <i className="bi bi-lightning-charge-fill me-1" />Limited Time Offer
             </span>
             <h2 className="fw-bold mb-3" style={{ fontSize: '2.2rem' }}>
-              Get ₹100 off your<br />first booking
+              Get ৳100 off your<br />first booking
             </h2>
             <p className="mb-4" style={{ color: 'rgba(255,255,255,0.75)', lineHeight: 1.7 }}>
               New to FixBhai? Use code <strong className="text-warning">FIRST100</strong> at checkout

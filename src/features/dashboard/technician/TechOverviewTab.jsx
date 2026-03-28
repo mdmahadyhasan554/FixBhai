@@ -9,7 +9,7 @@ const JOB_COLS = [
   { key: 'id',      label: 'Job ID',   render: v => <span className="text-muted small">{v}</span> },
   { key: 'service', label: 'Service',  render: v => <span className="fw-semibold">{v}</span> },
   { key: 'date',    label: 'Date',     hideOnMobile: true, render: (v, row) => <span className="text-muted small">{v} {row.time}</span> },
-  { key: 'amount',  label: 'Earnings', render: v => <span className="fw-semibold text-success">₹{v}</span> },
+  { key: 'amount',  label: 'Earnings', render: v => <span className="fw-semibold text-success">৳{v}</span> },
   { key: 'status',  label: 'Status',   render: v => <StatusBadge status={v} /> },
 ]
 

@@ -37,7 +37,7 @@ const ServiceCard = ({ service, compact = false, selected = false, onClick }) =>
       style={selected ? { outline: '2px solid #2563eb', outlineOffset: 1 } : {}}
       role="button"
       tabIndex={0}
-      aria-label={`Book ${service.name} starting at ₹${service.price}`}
+      aria-label={`Book ${service.name} starting at ৳${service.price}`}
       aria-pressed={selected}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
@@ -59,7 +59,7 @@ const ServiceCard = ({ service, compact = false, selected = false, onClick }) =>
 
         {/* Price */}
         <p className="text-muted mb-2" style={{ fontSize: compact ? '0.72rem' : '0.82rem' }}>
-          Starting <span className="fw-semibold text-dark">₹{service.price}</span>
+          Starting <span className="fw-semibold text-dark">৳{service.price}</span>
         </p>
 
         {/* Rating row */}

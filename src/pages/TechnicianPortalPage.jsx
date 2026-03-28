@@ -31,7 +31,7 @@ const TechnicianPortalPage = () => {
     today:     bookings.filter(b => b.status === 'confirmed').length,
     completed: stats.completed,
     month:     bookings.length,
-    earnings:  `₹${bookings.filter(b => b.status === 'completed').reduce((s, b) => s + (b.amount || 0), 0)}`,
+    earnings:  `৳${bookings.filter(b => b.status === 'completed').reduce((s, b) => s + (b.amount || 0), 0)}`,
   }
 
   const handleLogout = () => { logout(); navigate(ROUTES.HOME) }

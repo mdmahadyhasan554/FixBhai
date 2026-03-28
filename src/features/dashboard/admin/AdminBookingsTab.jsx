@@ -9,7 +9,7 @@ const COLUMNS = [
   { key: 'service',    label: 'Service',     render: v => <span className="fw-semibold">{v}</span> },
   { key: 'technician', label: 'Technician',  hideOnMobile: true },
   { key: 'date',       label: 'Date',        hideOnMobile: true, render: (v, row) => <span className="text-muted small">{v} {row.time}</span> },
-  { key: 'amount',     label: 'Amount',      render: v => <span className="fw-semibold text-primary">₹{v}</span> },
+  { key: 'amount',     label: 'Amount',      render: v => <span className="fw-semibold text-primary">৳{v}</span> },
   { key: 'status',     label: 'Status',      render: v => <StatusBadge status={v} /> },
   { key: 'id',         label: 'Actions',     render: (v, row) => <AdminBookingActions booking={row} /> },
 ]

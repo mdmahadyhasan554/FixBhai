@@ -47,7 +47,7 @@ const AdminAnalyticsTab = () => {
                     </div>
                     <div className="d-flex gap-3 text-end">
                       <span className="small text-muted">{s.count} bookings</span>
-                      <span className="small fw-semibold text-primary">₹{s.revenue}</span>
+                      <span className="small fw-semibold text-primary">৳{s.revenue}</span>
                     </div>
                   </div>
                   <div className="progress rounded-pill" style={{ height: 6 }}>
@@ -90,7 +90,7 @@ const AdminAnalyticsTab = () => {
                 </div>
                 <div className="col-6">
                   <div className="fw-bold text-success fs-4">
-                    ₹{bookings.filter(b => b.status === 'completed').reduce((s, b) => s + (b.amount || 0), 0)}
+                    ৳{bookings.filter(b => b.status === 'completed').reduce((s, b) => s + (b.amount || 0), 0)}
                   </div>
                   <div className="text-muted small">Total Revenue</div>
                 </div>

@@ -326,7 +326,7 @@ const ConfirmStep = ({ values, service, loading, onBack, onConfirm }) => {
             </div>
             <div className="text-end">
               <div className="fw-bold text-primary" style={{ fontSize: '1.5rem' }}>
-                ₹{service?.price || 299}
+                ৳{service?.price || 299}
               </div>
               <div className="text-muted small">Inclusive of all charges</div>
             </div>

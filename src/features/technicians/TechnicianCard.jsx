@@ -265,7 +265,7 @@ const MetaChip = ({ icon, label }) => (
 
 const PriceDisplay = ({ price }) => (
   <div>
-    <span className="fw-bold text-primary" style={{ fontSize: '1.25rem' }}>₹{price}</span>
+    <span className="fw-bold text-primary" style={{ fontSize: '1.25rem' }}>৳{price}</span>
     <span className="text-muted small ms-1">/ visit</span>
   </div>
 )

@@ -93,7 +93,7 @@ const TechnicianFilter = ({ filters = {}, onChange, onReset }) => {
                 className="badge bg-primary bg-opacity-10 text-primary rounded-pill fw-semibold flex-shrink-0"
                 style={{ minWidth: 56, textAlign: 'center' }}
               >
-                ₹{filters.maxPrice || 1000}
+                ৳{filters.maxPrice || 1000}
               </span>
             </div>
           </div>

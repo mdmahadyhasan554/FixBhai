@@ -210,7 +210,7 @@ export const BookingProvider = ({ children }) => {
       pending:   bookings.filter(b => b.status === 'pending').length,
       confirmed: bookings.filter(b => b.status === 'confirmed').length,
       cancelled: bookings.filter(b => b.status === 'cancelled').length,
-      spent:     `₹${completed.reduce((sum, b) => sum + (b.amount || 0), 0)}`,
+      spent:     `৳${completed.reduce((sum, b) => sum + (b.amount || 0), 0)}`,
     }
   }, [state.bookings]) // eslint-disable-line react-hooks/exhaustive-deps
 
