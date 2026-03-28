@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ROUTES } from '../../constants'
+import { logo } from '../../assets'
 
 /**
  * AuthLayout
@@ -23,7 +24,7 @@ const AuthLayout = ({ icon, title, subtitle, footerText, footerLink, error, chil
     <div className="text-center mb-4">
       <Link to={ROUTES.HOME} className="text-decoration-none d-inline-block mb-3">
         <img
-          src="/fixbhai-logo.png"
+          src={logo}
           alt="FixBhai"
           style={{ height: 52, width: 'auto', objectFit: 'contain' }}
         />

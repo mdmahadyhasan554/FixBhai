@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, forwardRef } from 'react'
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { NAV_LINKS, ROUTES } from '../../constants'
+import { logo } from '../../assets'
 
 /**
  * Navbar
@@ -51,13 +52,13 @@ const Navbar = () => {
     >
       <div className="container">
 
-        {/* Brand — uses the FixBhai logo image */}
+        {/* Brand — FixBhai logo from src/assets/logos/ */}
         <Link
           className="navbar-brand d-flex align-items-center text-decoration-none"
           to={ROUTES.HOME}
         >
           <img
-            src="/fixbhai-logo.png"
+            src={logo}
             alt="FixBhai — Trusted Services at Your Doorstep"
             style={{ height: 44, width: 'auto', objectFit: 'contain' }}
           />

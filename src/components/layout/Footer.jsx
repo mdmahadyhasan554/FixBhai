@@ -6,6 +6,7 @@ import {
   FOOTER_SOCIAL,
   FOOTER_CONTACT,
 } from '../../constants'
+import { logo } from '../../assets'
 
 /**
  * Footer
@@ -29,7 +30,7 @@ const Footer = () => (
         <div className="col-lg-4">
           <Link to={ROUTES.HOME} className="text-decoration-none d-inline-block mb-3">
             <img
-              src="/fixbhai-logo.png"
+              src={logo}
               alt="FixBhai"
               style={{ height: 48, width: 'auto', objectFit: 'contain' }}
             />

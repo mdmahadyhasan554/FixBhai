@@ -21,9 +21,12 @@ const mock = {
   // ── Auth ────────────────────────────────────────────────
   async login({ email, password }) {
     await delay(800)
-    if (!email || !password) throw new Error('Invalid credentials')
+    if (!email) throw new Error('Email is required')
+    if (!password) throw new Error('Password is required')
+    // Mock accepts any valid email + any password
+    const name = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
     return {
-      user:  { name: email.split('@')[0], email, role: 'customer' },
+      user:  { name, email, role: 'customer' },
       token: 'mock_token_' + Date.now(),
     }
   },

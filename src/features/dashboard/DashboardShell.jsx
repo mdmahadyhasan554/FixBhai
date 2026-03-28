@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { ROUTES } from '../../constants'
 import UserAvatar from '../../components/common/UserAvatar'
+import { logo } from '../../assets'
 
 // Sidebar width — defined once, used in both sidebar and main offset
 const SIDEBAR_W = 248
@@ -46,7 +47,7 @@ const DashboardShell = ({
         <div className="p-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
           <Link to={ROUTES.HOME} className="text-decoration-none d-block mb-1">
             <img
-              src="/fixbhai-logo.png"
+              src={logo}
               alt="FixBhai"
               style={{ height: 36, width: 'auto', objectFit: 'contain', filter: 'brightness(0) invert(1)' }}
             />

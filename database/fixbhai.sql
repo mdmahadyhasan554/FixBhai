@@ -197,7 +197,10 @@ CREATE TABLE notifications (
 ) ENGINE=InnoDB;
 
 -- ============================================================
--- SEED DATA
+-- SEED DATA — Bangladesh localised
+-- Passwords are placeholder hashes.
+-- Run backend/seed.php to generate real bcrypt hashes,
+-- then UPDATE the password_hash column in phpMyAdmin.
 -- ============================================================
 
 -- Service categories
@@ -211,36 +214,36 @@ INSERT INTO service_categories (slug, name, icon, sort_order) VALUES
   ('pest',       'Pest Control',    'bug-fill',              7),
   ('security',   'Security',        'camera-video-fill',     8);
 
--- Services
+-- Services — prices in BDT
 INSERT INTO services (category_id, name, slug, icon, color, icon_color, base_price) VALUES
-  (1, 'AC Repair',     'ac-repair',     'wind',             '#dbeafe', '#2563eb', 299.00),
-  (2, 'Plumbing',      'plumbing',      'droplet',          '#d1fae5', '#059669', 199.00),
-  (3, 'Electrical',    'electrical',    'lightning-charge', '#fef3c7', '#d97706', 249.00),
-  (4, 'Cleaning',      'cleaning',      'stars',            '#ede9fe', '#7c3aed', 399.00),
-  (5, 'Painting',      'painting',      'brush',            '#fce7f3', '#db2777', 599.00),
-  (6, 'Carpentry',     'carpentry',     'hammer',           '#ffedd5', '#ea580c', 349.00),
-  (7, 'Pest Control',  'pest-control',  'bug',              '#dcfce7', '#16a34a', 499.00),
-  (8, 'CCTV Install',  'cctv-install',  'camera-video',     '#e0f2fe', '#0284c7', 799.00);
+  (1, 'AC Repair',     'ac-repair',     'wind',             '#dbeafe', '#2563eb',  800.00),
+  (2, 'Plumbing',      'plumbing',      'droplet',          '#d1fae5', '#059669',  400.00),
+  (3, 'Electrical',    'electrical',    'lightning-charge', '#fef3c7', '#d97706',  300.00),
+  (4, 'Cleaning',      'cleaning',      'stars',            '#ede9fe', '#7c3aed',  600.00),
+  (5, 'Painting',      'painting',      'brush',            '#fce7f3', '#db2777', 1200.00),
+  (6, 'Carpentry',     'carpentry',     'hammer',           '#ffedd5', '#ea580c',  500.00),
+  (7, 'Pest Control',  'pest-control',  'bug',              '#dcfce7', '#16a34a',  700.00),
+  (8, 'CCTV Install',  'cctv-install',  'camera-video',     '#e0f2fe', '#0284c7', 1500.00);
 
--- Demo admin user (password: Admin@123)
+-- Admin user (password: Admin@123 — update hash via seed.php)
 INSERT INTO users (name, email, phone, password_hash, role) VALUES
-  ('Admin', 'admin@fixbhai.in', '+91 98765 00000',
-   '$2b$12$exampleHashForAdminPassword000000000000000000000000000', 'admin');
+  ('Admin FixBhai', 'admin@fixbhai.com', '01700000000',
+   '$2y$10$placeholder_run_seed_php_to_fix', 'admin');
 
--- Demo customer (password: Demo@1234)
+-- Demo customer: Rahim Uddin (password: Demo@1234)
 INSERT INTO users (name, email, phone, password_hash, role) VALUES
-  ('Demo User', 'demo@fixbhai.in', '+91 98765 43210',
-   '$2b$12$exampleHashForDemoPassword0000000000000000000000000000', 'customer');
+  ('Rahim Uddin', 'rahim@gmail.com', '01712345678',
+   '$2y$10$placeholder_run_seed_php_to_fix', 'customer');
 
--- Demo technician user (password: Tech@1234)
+-- Demo technician: Karim Sheikh (password: Tech@1234)
 INSERT INTO users (name, email, phone, password_hash, role, avatar_url) VALUES
-  ('Rajesh Kumar', 'rajesh@fixbhai.in', '+91 98765 11111',
-   '$2b$12$exampleHashForTechPassword0000000000000000000000000000',
+  ('Karim Sheikh', 'karim@fixbhai.com', '01898765432',
+   '$2y$10$placeholder_run_seed_php_to_fix',
    'technician', 'https://i.pravatar.cc/150?img=11');
 
--- Technician profile for Rajesh
+-- Technician profile for Karim
 INSERT INTO technicians (user_id, service_id, experience, location, is_verified, is_available, rating, review_count, hourly_rate)
-VALUES (3, 1, '8 yrs', 'Andheri, Mumbai', 1, 1, 4.90, 234, 299.00);
+VALUES (3, 1, '8 yrs', 'Mirpur, Dhaka', 1, 1, 4.90, 234, 800.00);
 
 -- ============================================================
 -- USEFUL VIEWS
