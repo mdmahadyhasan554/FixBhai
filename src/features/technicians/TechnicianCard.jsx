@@ -133,7 +133,7 @@ const TechnicianCardCompact = ({ tech, onBook }) => (
       <StarRating rating={tech.rating} reviews={tech.reviews} small />
     </div>
     <div className="text-end flex-shrink-0">
-      <div className="fw-bold text-primary small">₹{tech.price}</div>
+      <div className="fw-bold text-primary small">৳{tech.price}</div>
       <button className="btn btn-primary btn-sm rounded-pill px-3 mt-1"
         disabled={!tech.available} onClick={onBook}>
         Book
@@ -200,7 +200,7 @@ const TechnicianProfileModal = ({ tech, show, onClose, onBook }) => (
     <div className="d-flex flex-column gap-2">
       {[
         { icon: 'geo-alt',    label: 'Location',     value: tech.location                    },
-        { icon: 'currency-rupee', label: 'Rate',     value: `₹${tech.price} per visit`       },
+        { icon: 'currency-exchange', label: 'Rate', value: `৳${tech.price} per visit` },
         { icon: 'circle-fill', label: 'Status',      value: tech.available ? 'Available now' : 'Currently busy' },
       ].map(d => (
         <div key={d.label} className="d-flex align-items-center gap-3 p-3 rounded-3"

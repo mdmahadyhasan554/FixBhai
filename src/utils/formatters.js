@@ -1,23 +1,23 @@
 /**
  * formatters.js — Pure utility functions for formatting and URL building.
- * No React, no side effects. All functions are independently testable.
+ * Localised for Bangladesh (BDT currency, BD phone format).
  */
 
 /**
- * Format a number as Indian Rupees.
+ * Format a number as Bangladeshi Taka (BDT).
  * @param {number} amount
- * @returns {string} e.g. "₹299"
+ * @returns {string} e.g. "৳800"
  */
-export const formatCurrency = (amount) => `₹${amount}`
+export const formatCurrency = (amount) => `৳${amount}`
 
 /**
- * Format an ISO date string to a human-readable Indian locale date.
- * @param {string} dateStr — ISO date string e.g. "2025-04-10"
+ * Format an ISO date string to a human-readable date.
+ * @param {string} dateStr — e.g. "2025-04-10"
  * @returns {string} e.g. "10 Apr 2025" or "—" if empty
  */
 export const formatDate = (dateStr) => {
   if (!dateStr) return '—'
-  return new Date(dateStr).toLocaleDateString('en-IN', {
+  return new Date(dateStr).toLocaleDateString('en-BD', {
     day: 'numeric', month: 'short', year: 'numeric',
   })
 }
@@ -50,3 +50,11 @@ export const capitalize = (str = '') =>
  */
 export const generateBookingId = (count) =>
   `BK${String(count + 1).padStart(3, '0')}`
+
+/**
+ * Validate a Bangladeshi phone number (01XXXXXXXXX — 11 digits).
+ * @param {string} phone
+ * @returns {boolean}
+ */
+export const isBDPhone = (phone = '') =>
+  /^01[3-9]\d{8}$/.test(phone.replace(/\s/g, ''))

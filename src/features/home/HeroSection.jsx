@@ -23,7 +23,7 @@ const HeroSection = () => {
             {/* Trust pill */}
             <div className="hero-badge mb-3">
               <i className="bi bi-shield-check me-2" aria-hidden="true" />
-              Trusted by <strong>50,000+</strong> happy customers
+              Trusted by <strong>50,000+</strong> customers across Bangladesh
             </div>
 
             <h1 className="display-3 fw-bold lh-sm mb-3">
@@ -32,8 +32,8 @@ const HeroSection = () => {
             </h1>
 
             <p className="lead mb-4" style={{ color: 'rgba(255,255,255,0.82)', maxWidth: 480 }}>
-              Book verified technicians for AC repair, plumbing, electrical,
-              cleaning and more — at your doorstep in minutes.
+              Find trusted technicians near you for AC repair, plumbing, electrical,
+              cleaning and more — verified professionals at your doorstep.
             </p>
 
             {/* Search bar */}
@@ -53,7 +53,7 @@ const HeroSection = () => {
                 <div className="hero-search-divider d-none d-md-block" />
                 <div className="hero-search-field d-none d-md-flex">
                   <i className="bi bi-geo-alt text-muted" aria-hidden="true" />
-                  <input type="text" placeholder="Mumbai, Maharashtra" aria-label="Location" />
+                  <input type="text" placeholder="Dhaka, Chittagong, Sylhet..." aria-label="Location" />
                 </div>
                 <button type="submit" className="btn btn-warning fw-semibold px-4 rounded-3">
                   Search
@@ -86,10 +86,10 @@ const HeroSection = () => {
 }
 
 const HERO_CARDS = [
-  { icon: 'wind',             bg: '#dbeafe', color: '#2563eb', label: 'AC Repair',   price: '₹299' },
-  { icon: 'lightning-charge', bg: '#fef3c7', color: '#d97706', label: 'Electrical',  price: '₹249' },
-  { icon: 'droplet',          bg: '#d1fae5', color: '#059669', label: 'Plumbing',    price: '₹199' },
-  { icon: 'stars',            bg: '#ede9fe', color: '#7c3aed', label: 'Cleaning',    price: '₹399' },
+  { icon: 'wind',             bg: '#dbeafe', color: '#2563eb', label: 'AC Repair',   price: '৳800'  },
+  { icon: 'lightning-charge', bg: '#fef3c7', color: '#d97706', label: 'Electrical',  price: '৳300'  },
+  { icon: 'droplet',          bg: '#d1fae5', color: '#059669', label: 'Plumbing',    price: '৳400'  },
+  { icon: 'stars',            bg: '#ede9fe', color: '#7c3aed', label: 'Cleaning',    price: '৳600'  },
 ]
 
 const HeroVisual = () => (
@@ -102,7 +102,7 @@ const HeroVisual = () => (
         </div>
         <div>
           <div className="fw-bold">AC Repair Booked!</div>
-          <div className="text-muted small">Rajesh Kumar · Today 10 AM</div>
+          <div className="text-muted small">Karim Sheikh · Today 10 AM</div>
         </div>
       </div>
       <div className="d-flex align-items-center gap-2">

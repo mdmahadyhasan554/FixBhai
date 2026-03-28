@@ -1,0 +1,126 @@
+{
+  "info": {
+    "name": "FixBhai API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base", "value": "http://localhost/backend/api" },
+    { "key": "token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "url": "{{base}}/auth/register.php",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\":\"Test User\",\"email\":\"test@fixbhai.in\",\"phone\":\"+91 99999 00000\",\"password\":\"Test@1234\"}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [{
+            "listen": "test",
+            "script": { "exec": ["pm.collectionVariables.set('token', pm.response.json().token)"] }
+          }],
+          "request": {
+            "method": "POST",
+            "url": "{{base}}/auth/login.php",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\":\"demo@fixbhai.in\",\"password\":\"Demo@1234\"}"
+            }
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "url": "{{base}}/auth/me.php",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Services",
+      "item": [
+        {
+          "name": "Get All Services",
+          "request": { "method": "GET", "url": "{{base}}/services/index.php" }
+        },
+        {
+          "name": "Filter by Category",
+          "request": { "method": "GET", "url": "{{base}}/services/index.php?category=plumbing" }
+        },
+        {
+          "name": "Search Services",
+          "request": { "method": "GET", "url": "{{base}}/services/index.php?q=AC" }
+        }
+      ]
+    },
+    {
+      "name": "Technicians",
+      "item": [
+        {
+          "name": "Get All Technicians",
+          "request": { "method": "GET", "url": "{{base}}/technicians/index.php" }
+        },
+        {
+          "name": "Filter Available",
+          "request": { "method": "GET", "url": "{{base}}/technicians/index.php?available=available" }
+        }
+      ]
+    },
+    {
+      "name": "Bookings",
+      "item": [
+        {
+          "name": "Create Booking",
+          "request": {
+            "method": "POST",
+            "url": "{{base}}/bookings/create.php",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"service\":\"AC Repair\",\"date\":\"2025-05-01\",\"time\":\"10:00 AM\",\"address\":\"123 Test St, Mumbai\",\"problemCategory\":\"Not working / broken\",\"description\":\"AC not cooling\"}"
+            }
+          }
+        },
+        {
+          "name": "Get My Bookings",
+          "request": {
+            "method": "GET",
+            "url": "{{base}}/bookings/user.php",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }]
+          }
+        },
+        {
+          "name": "Cancel Booking",
+          "request": {
+            "method": "PATCH",
+            "url": "{{base}}/bookings/status.php",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id\":\"BK001\",\"status\":\"cancelled\"}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

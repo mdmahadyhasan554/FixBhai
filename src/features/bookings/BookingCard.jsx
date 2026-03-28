@@ -66,7 +66,7 @@ const BookingCard = ({ booking, onCancel, onRate, compact = false }) => {
           style={{ borderTop: '1px solid #f1f5f9' }}>
           <div>
             <span className="fw-bold text-primary" style={{ fontSize: '1.1rem' }}>
-              ₹{amount}
+              ৳{amount}
             </span>
             <span className="text-muted small ms-1">/ visit</span>
           </div>
@@ -96,7 +96,7 @@ const BookingCardCompact = ({ booking }) => (
       </div>
     </div>
     <div className="d-flex align-items-center gap-2 flex-shrink-0">
-      <span className="fw-bold text-primary small">₹{booking.amount}</span>
+      <span className="fw-bold text-primary small">৳{booking.amount}</span>
       <StatusBadge status={booking.status} />
     </div>
   </div>
