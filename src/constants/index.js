@@ -53,6 +53,7 @@ export const DASHBOARD_NAV = [
 export const ADMIN_NAV = [
   { key: 'overview',     icon: 'grid',           label: 'Overview'      },
   { key: 'bookings',     icon: 'calendar-check', label: 'All Bookings'  },
+  { key: 'payments',     icon: 'credit-card',    label: 'Payments'      },
   { key: 'users',        icon: 'people',         label: 'Users'         },
   { key: 'technicians',  icon: 'person-badge',   label: 'Technicians'   },
   { key: 'services',     icon: 'tools',          label: 'Services'      },
@@ -135,8 +136,54 @@ export const TECH_SORT_OPTIONS = [
   { value: 'reviews',    label: 'Most Reviewed'       },
 ]
 
-// ── Booking form steps ───────────────────────────────────
-export const BOOKING_STEPS = ['Service', 'Schedule', 'Confirm']
+// ── Payment methods (Bangladesh) ─────────────────────────
+export const PAYMENT_METHODS = [
+  {
+    id:      'bkash',
+    label:   'bKash',
+    icon:    'phone',
+    color:   '#E2136E',
+    bg:      '#fce7f3',
+    number:  '01712345678',
+    desc:    'Send money via bKash',
+  },
+  {
+    id:      'nagad',
+    label:   'Nagad',
+    icon:    'phone',
+    color:   '#F7941D',
+    bg:      '#fff3e0',
+    number:  '01898765432',
+    desc:    'Send money via Nagad',
+  },
+  {
+    id:      'rocket',
+    label:   'Rocket',
+    icon:    'phone',
+    color:   '#8B1FA8',
+    bg:      '#f3e5f5',
+    number:  '01611223344',
+    desc:    'Send money via Rocket (DBBL)',
+  },
+  {
+    id:      'cash',
+    label:   'Cash on Service',
+    icon:    'cash-coin',
+    color:   '#059669',
+    bg:      '#d1fae5',
+    number:  null,
+    desc:    'Pay cash after service is completed',
+  },
+]
+
+export const PAYMENT_STATUS_MAP = {
+  pending:   { type: 'warning', label: 'Pending'   },
+  completed: { type: 'success', label: 'Paid'       },
+  failed:    { type: 'danger',  label: 'Failed'     },
+}
+
+// ── Booking form steps (updated to include payment) ──────
+export const BOOKING_STEPS = ['Service', 'Schedule', 'Payment', 'Confirm']
 
 export const BOOKING_STATUS_FILTERS = [
   { value: 'all',       label: 'All'       },

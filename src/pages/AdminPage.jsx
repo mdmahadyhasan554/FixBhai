@@ -6,12 +6,14 @@ import DashboardShell from '../features/dashboard/DashboardShell'
 import AdminOverviewTab  from '../features/dashboard/admin/AdminOverviewTab'
 import AdminBookingsTab  from '../features/dashboard/admin/AdminBookingsTab'
 import AdminAnalyticsTab from '../features/dashboard/admin/AdminAnalyticsTab'
+import AdminPaymentsTab  from '../features/dashboard/admin/AdminPaymentsTab'
 import { ADMIN_NAV, ROUTES } from '../constants'
 import { TECHNICIANS as TECH_DATA } from '../api/data'
 
 const TABS = {
   overview:    AdminOverviewTab,
   bookings:    AdminBookingsTab,
+  payments:    AdminPaymentsTab,
   analytics:   AdminAnalyticsTab,
   users:       () => <PlaceholderTab icon="people" title="User Management" desc="Manage customer accounts, roles, and permissions." />,
   technicians: () => <PlaceholderTab icon="person-badge" title="Technician Management" desc="Approve, suspend, and manage technician profiles." />,

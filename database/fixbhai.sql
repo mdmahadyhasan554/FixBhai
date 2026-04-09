@@ -448,3 +448,32 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+-- ============================================================
+-- PAYMENTS TABLE — Bangladesh mobile banking support
+-- Run this after importing the main schema.
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS `payments` (
+  `id`             INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  `user_id`        INT UNSIGNED    NOT NULL,
+  `booking_id`     VARCHAR(20)     NOT NULL,
+  `amount`         DECIMAL(10,2)   NOT NULL,
+  `payment_method` ENUM('bkash','nagad','rocket','cash') NOT NULL,
+  `transaction_id` VARCHAR(100)    NULL,
+  `status`         ENUM('pending','completed','failed') NOT NULL DEFAULT 'pending',
+  `created_at`     TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at`     TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_transaction_id` (`transaction_id`),
+  FOREIGN KEY (`user_id`)    REFERENCES `users`(`id`),
+  FOREIGN KEY (`booking_id`) REFERENCES `bookings`(`id`),
+  INDEX `idx_payments_user`    (`user_id`),
+  INDEX `idx_payments_booking` (`booking_id`),
+  INDEX `idx_payments_status`  (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Also add payment_method + transaction_id to bookings if not present
+ALTER TABLE `bookings`
+  ADD COLUMN IF NOT EXISTS `payment_method`  ENUM('cash','bkash','nagad','rocket') NULL AFTER `payment_status`,
+  ADD COLUMN IF NOT EXISTS `transaction_id`  VARCHAR(100) NULL AFTER `payment_method`;
