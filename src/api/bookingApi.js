@@ -16,7 +16,7 @@ export const getBookings = async () => {
 
 export const getBookingById = async (id) => {
   if (USE_MOCK) return mock.getBookingById(id)
-  return client.get('/bookings/user.php', { params: { id } })
+  return client.get(`/bookings/user.php?id=${id}`)
 }
 
 export const createBooking = async (payload) => {
@@ -29,12 +29,12 @@ export const updateBookingStatus = async (id, status) => {
   return client.patch('/bookings/status.php', { id, status })
 }
 
-export const cancelBooking = async (id) => {
+export const cancelBooking = async (id, reason = '') => {
   if (USE_MOCK) return mock.cancelBooking(id)
-  return client.patch('/bookings/status.php', { id, status: 'cancelled' })
+  return client.patch('/bookings/status.php', { id, status: 'cancelled', cancelledReason: reason })
 }
 
-export const submitReview = async (id, review) => {
+export const submitReview = async (bookingId, rating, comment) => {
   if (USE_MOCK) return { success: true }
-  return client.post('/bookings/review.php', { id, ...review })
+  return client.post('/bookings/review.php', { bookingId, rating, comment })
 }

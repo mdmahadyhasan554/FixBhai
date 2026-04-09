@@ -1,9 +1,11 @@
 <?php
 /**
- * PATCH /api/bookings/status
+ * PATCH /api/bookings/status.php
  * Header: Authorization: Bearer <token>
- * Body: { id, status }
+ * Body: { id, status, cancelledReason? }
  * Returns: { success, data: Booking }
+ * 
+ * Updates booking status. Validates ownership and role permissions.
  */
 require_once __DIR__ . '/../../config/helpers.php';
 require_once __DIR__ . '/../../config/database.php';
@@ -12,28 +14,69 @@ cors();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'PATCH') error('Method not allowed', 405);
 
-$auth   = requireAuth();
-$data   = body();
-$id     = trim($data['id']     ?? '');
-$status = trim($data['status'] ?? '');
+$auth = requireAuth();
+$data = body();
 
-$allowed = ['confirmed', 'in_progress', 'completed', 'cancelled'];
-if (!$id)                        error('Booking ID is required', 422);
-if (!in_array($status, $allowed)) error('Invalid status', 422);
+// Validate
+if (empty($data['id'])) error('Booking ID is required', 422);
+if (empty($data['status'])) error('Status is required', 422);
+
+$validStatuses = ['pending', 'confirmed', 'in_progress', 'completed', 'cancelled'];
+if (!in_array($data['status'], $validStatuses)) {
+    error('Invalid status', 422);
+}
 
 $pdo = getDB();
 
-// Customers can only cancel their own bookings
-if ($auth['role'] === 'customer') {
-    if ($status !== 'cancelled') error('Customers can only cancel bookings', 403);
-    $stmt = $pdo->prepare('UPDATE bookings SET status = ? WHERE id = ? AND customer_id = ?');
-    $stmt->execute([$status, $id, $auth['sub']]);
-} else {
-    // Admins / technicians can set any status
-    $stmt = $pdo->prepare('UPDATE bookings SET status = ? WHERE id = ?');
-    $stmt->execute([$status, $id]);
+// Fetch booking
+$stmt = $pdo->prepare('SELECT * FROM bookings WHERE id = ?');
+$stmt->execute([$data['id']]);
+$booking = $stmt->fetch();
+
+if (!$booking) error('Booking not found', 404);
+
+// Authorization check
+$isOwner = $booking['customer_id'] == $auth['sub'];
+$isAdmin = $auth['role'] === 'admin';
+$isTech  = $auth['role'] === 'technician' && $booking['technician_id'] == $auth['sub'];
+
+if (!$isOwner && !$isAdmin && !$isTech) {
+    error('You do not have permission to update this booking', 403);
 }
 
-if ($stmt->rowCount() === 0) error('Booking not found or no change made', 404);
+// Update booking
+$cancelledReason = $data['status'] === 'cancelled' ? ($data['cancelledReason'] ?? null) : null;
 
-json(['success' => true, 'data' => ['id' => $id, 'status' => $status]]);
+$stmt = $pdo->prepare('
+    UPDATE bookings 
+    SET status = ?, cancelled_reason = ?, updated_at = NOW()
+    WHERE id = ?
+');
+$stmt->execute([$data['status'], $cancelledReason, $data['id']]);
+
+// If completed, update payment status
+if ($data['status'] === 'completed') {
+    $pdo->prepare('UPDATE payments SET status = ? WHERE booking_id = ?')
+        ->execute(['completed', $data['id']]);
+}
+
+// Fetch updated booking with joins
+$stmt = $pdo->prepare('
+    SELECT 
+        b.*,
+        s.name as service_name,
+        s.icon as service_icon,
+        t.name as technician_name,
+        t.phone as technician_phone,
+        u.name as customer_name,
+        u.phone as customer_phone
+    FROM bookings b
+    JOIN services s ON b.service_id = s.id
+    LEFT JOIN technicians t ON b.technician_id = t.id
+    JOIN users u ON b.customer_id = u.id
+    WHERE b.id = ?
+');
+$stmt->execute([$data['id']]);
+$updated = $stmt->fetch();
+
+json(['success' => true, 'data' => $updated]);

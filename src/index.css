@@ -23,6 +23,24 @@ a { text-decoration: none; }
 .navbar-brand span { color: var(--secondary); }
 .navbar { box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
 
+/* Fix navbar link focus/active state */
+.nav-link:focus,
+.nav-link:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.nav-link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Remove Bootstrap's default focus styles on nav links */
+.navbar .nav-link:focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: none;
+}
+
 /* Hero */
 .hero-section {
   background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 40%, #2563eb 100%);

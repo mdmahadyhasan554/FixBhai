@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth }    from '../context/AuthContext'
 import { useBooking } from '../context/BookingContext'
@@ -17,6 +17,7 @@ const TABS = {
 /**
  * DashboardPage — Customer dashboard.
  * Pure orchestrator — delegates all UI to DashboardShell + tab components.
+ * Redirects admins and technicians to their respective dashboards.
  */
 const DashboardPage = () => {
   const { user, logout }                              = useAuth()
@@ -24,7 +25,27 @@ const DashboardPage = () => {
   const navigate                                      = useNavigate()
   const [activeTab, setActiveTab]                     = useState('overview')
 
-  if (!user) { navigate(ROUTES.LOGIN); return null }
+  // Redirect non-customers to their respective dashboards
+  // Only check role, not entire user object to avoid unnecessary re-renders
+  useEffect(() => {
+    if (!user) {
+      navigate(ROUTES.LOGIN, { replace: true })
+      return
+    }
+    
+    if (user.role === 'admin') {
+      navigate(ROUTES.ADMIN, { replace: true })
+      return
+    }
+    
+    if (user.role === 'technician') {
+      navigate(ROUTES.TECH_PORTAL, { replace: true })
+      return
+    }
+  }, [user?.role, navigate]) // Only depend on role, not entire user object
+
+  if (!user) return null
+  if (user.role !== 'customer') return null
 
   const stats      = getStats()
   const ActiveTab  = TABS[activeTab]

@@ -72,8 +72,16 @@ const RegisterForm = () => {
     clearError()
     if (!validate()) return
     try {
-      await register(values)
-      navigate(ROUTES.DASHBOARD)
+      const userData = await register(values)
+      
+      // Role-based redirect after registration
+      if (userData?.role === 'admin') {
+        navigate(ROUTES.ADMIN, { replace: true })
+      } else if (userData?.role === 'technician') {
+        navigate(ROUTES.TECH_PORTAL, { replace: true })
+      } else {
+        navigate(ROUTES.DASHBOARD, { replace: true })
+      }
     } catch {
       // error already set in context
     }

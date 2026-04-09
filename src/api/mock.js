@@ -23,10 +23,20 @@ const mock = {
     await delay(800)
     if (!email) throw new Error('Email is required')
     if (!password) throw new Error('Password is required')
-    // Mock accepts any valid email + any password
+    
+    // Mock role assignment based on email
+    let role = 'customer'
+    const emailLower = email.toLowerCase()
+    
+    if (emailLower === 'admin@fixbhai.com') {
+      role = 'admin'
+    } else if (emailLower === 'karim@fixbhai.com' || emailLower.includes('tech')) {
+      role = 'technician'
+    }
+    
     const name = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
     return {
-      user:  { name, email, role: 'customer' },
+      user:  { name, email, role },
       token: 'mock_token_' + Date.now(),
     }
   },

@@ -15,6 +15,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') error('Method not allowed', 405);
 $auth = requireAuth();
 $data = body();
 
+// Only customers can create bookings
+if ($auth['role'] !== 'customer') {
+    error('Only customers can create bookings', 403);
+}
+
 // ── Validate ──────────────────────────────────────────────
 $errs = [];
 if (empty($data['service']))         $errs['service']         = 'Service is required';

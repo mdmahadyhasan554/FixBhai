@@ -46,8 +46,20 @@ function body(): array {
 }
 
 // ── JWT (HS256, no external library) ─────────────────────
-define('JWT_SECRET', 'fixbhai_jwt_secret_change_in_production');
-define('JWT_EXPIRY', 60 * 60 * 24 * 7); // 7 days
+// Load JWT secret from environment or use default (insecure for production)
+$envFile = __DIR__ . '/.env';
+if (file_exists($envFile)) {
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) continue;
+        if (strpos($line, '=') === false) continue;
+        list($key, $value) = explode('=', $line, 2);
+        $_ENV[trim($key)] = trim($value);
+    }
+}
+
+define('JWT_SECRET', $_ENV['JWT_SECRET'] ?? 'fixbhai_jwt_secret_change_in_production');
+define('JWT_EXPIRY', (int)($_ENV['JWT_EXPIRY'] ?? 60 * 60 * 24 * 7)); // 7 days default
 
 function base64url(string $data): string {
     return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');

@@ -1,11 +1,7 @@
 Options -Indexes
 
-# Allow CORS preflight from any origin
-Header always set Access-Control-Allow-Origin "*"
-Header always set Access-Control-Allow-Methods "GET, POST, PATCH, DELETE, OPTIONS"
-Header always set Access-Control-Allow-Headers "Content-Type, Authorization, Accept"
-
-# Handle OPTIONS preflight
+# Rewrite engine for clean URLs (if needed)
 RewriteEngine On
-RewriteCond %{REQUEST_METHOD} OPTIONS
-RewriteRule .* - [R=204,L]
+
+# All CORS handling is done in PHP (helpers.php cors() function)
+# No CORS headers here to avoid conflicts

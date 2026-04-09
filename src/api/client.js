@@ -30,15 +30,6 @@ export const tokenStorage = {
   remove: ()      => { try { localStorage.removeItem('fixbhai_token'); localStorage.removeItem('fixbhai_user') } catch {} },
 }
 
-// ── Refresh state ─────────────────────────────────────────
-let isRefreshing = false
-let refreshQueue = []   // [{ resolve, reject }]
-
-const processQueue = (error, token = null) => {
-  refreshQueue.forEach(({ resolve, reject }) => error ? reject(error) : resolve(token))
-  refreshQueue = []
-}
-
 // ── Request interceptor — attach token ───────────────────
 client.interceptors.request.use(
   (config) => {
@@ -58,45 +49,20 @@ client.interceptors.response.use(
     const status   = error.response?.status
     const original = error.config
 
-    // ── 401: try token refresh once ──────────────────────
-    if (status === 401 && !original._retry) {
-      if (isRefreshing) {
-        // Queue this request until refresh completes
-        return new Promise((resolve, reject) => {
-          refreshQueue.push({ resolve, reject })
-        }).then(token => {
-          original.headers.Authorization = `Bearer ${token}`
-          return client(original)
-        })
-      }
-
-      original._retry = true
-      isRefreshing    = true
-
-      try {
-        const raw          = localStorage.getItem('fixbhai_refresh_token')
-        const refreshToken = raw ? JSON.parse(raw) : null
-
-        if (!refreshToken) throw new Error('No refresh token')
-
-        const { token: newToken } = await axios.post(
-          `${BASE_URL}/auth/refresh`,
-          { refreshToken },
-          { headers: { 'Content-Type': 'application/json' } },
-        )
-
-        tokenStorage.set(newToken)
-        processQueue(null, newToken)
-        original.headers.Authorization = `Bearer ${newToken}`
-        return client(original)
-      } catch (refreshError) {
-        processQueue(refreshError)
-        tokenStorage.remove()
+    // ── 401: Redirect to login (token refresh disabled for now) ──────────────────────
+    if (status === 401 && !original._isRetry) {
+      // Prevent infinite loops
+      original._isRetry = true
+      
+      // Clear tokens and redirect to login
+      tokenStorage.remove()
+      
+      // Only redirect if not already on login page
+      if (!window.location.pathname.includes('/login')) {
         window.location.href = '/login'
-        return Promise.reject(refreshError)
-      } finally {
-        isRefreshing = false
       }
+      
+      return Promise.reject(new ApiError('Session expired. Please login again.', 401))
     }
 
     // ── Normalise all other errors ────────────────────────

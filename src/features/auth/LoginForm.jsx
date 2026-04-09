@@ -21,15 +21,29 @@ const LoginForm = () => {
   const { login, loading, error, clearError } = useAuth()
   const navigate  = useNavigate()
   const location  = useLocation()
-  const from      = location.state?.from?.pathname || ROUTES.DASHBOARD
+  const from      = location.state?.from?.pathname
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     clearError()
     if (!validateAll()) return
     try {
-      await login(values)
-      navigate(from, { replace: true })
+      const userData = await login(values)
+      
+      // Role-based redirect after login
+      if (from && from !== ROUTES.LOGIN && from !== ROUTES.REGISTER) {
+        // If redirected from a protected route, go back there
+        navigate(from, { replace: true })
+      } else if (userData?.role === 'admin') {
+        // Admin users go to admin panel
+        navigate(ROUTES.ADMIN, { replace: true })
+      } else if (userData?.role === 'technician') {
+        // Technicians go to technician portal
+        navigate(ROUTES.TECH_PORTAL, { replace: true })
+      } else {
+        // Customers go to dashboard
+        navigate(ROUTES.DASHBOARD, { replace: true })
+      }
     } catch {
       // error already set in context
     }
@@ -88,45 +102,9 @@ const LoginForm = () => {
           Sign In
         </Button>
 
-        {/* Divider */}
-        <div className="d-flex align-items-center gap-3 mb-3">
-          <hr className="flex-grow-1 m-0" />
-          <span className="text-muted small">or</span>
-          <hr className="flex-grow-1 m-0" />
-        </div>
-
-        {/* Demo hint */}
-        <DemoHint onFill={() => {
-          handleChange({ target: { name: 'email',    value: 'demo@fixbhai.in' } })
-          handleChange({ target: { name: 'password', value: 'demo1234'        } })
-        }} />
-
       </form>
     </AuthLayout>
   )
 }
-
-// ── Demo hint ─────────────────────────────────────────────
-
-const DemoHint = ({ onFill }) => (
-  <div
-    className="rounded-3 p-3 d-flex align-items-center justify-content-between gap-2"
-    style={{ background: '#f8fafc', border: '1px dashed #cbd5e1' }}
-  >
-    <div>
-      <div className="small fw-semibold text-dark">Demo account</div>
-      <div className="text-muted" style={{ fontSize: '0.72rem' }}>
-        demo@fixbhai.in · any password
-      </div>
-    </div>
-    <button
-      type="button"
-      className="btn btn-sm btn-outline-primary rounded-pill px-3 flex-shrink-0"
-      onClick={onFill}
-    >
-      Fill in
-    </button>
-  </div>
-)
 
 export default LoginForm

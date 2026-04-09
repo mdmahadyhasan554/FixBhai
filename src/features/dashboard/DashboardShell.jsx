@@ -54,7 +54,7 @@ const DashboardShell = ({
           </Link>
           {user && (
             <div className="mt-3 d-flex align-items-center gap-2">
-              <UserAvatar name={user.name} size={32} />
+              <UserAvatar name={user.name} avatarUrl={user.avatar_url} size={32} />
               <div className="min-w-0">
                 <div className="text-white fw-semibold small text-truncate">{user.name}</div>
                 <div className="text-truncate" style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.7rem' }}>
@@ -125,7 +125,7 @@ const DashboardShell = ({
 
             {/* Avatar */}
             <div className="d-flex align-items-center gap-2">
-              <UserAvatar name={user?.name} size={36} bg={accentColor} />
+              <UserAvatar name={user?.name} avatarUrl={user?.avatar_url} size={36} bg={accentColor} />
               <span className="fw-semibold small d-none d-md-inline">{user?.name}</span>
             </div>
           </div>

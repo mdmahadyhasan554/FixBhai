@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 28, 2026 at 03:40 AM
+-- Generation Time: Apr 09, 2026 at 06:15 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -41,6 +41,8 @@ CREATE TABLE `bookings` (
   `notes` text DEFAULT NULL,
   `amount` decimal(10,2) NOT NULL DEFAULT 0.00,
   `payment_status` enum('unpaid','paid','refunded') NOT NULL DEFAULT 'unpaid',
+  `payment_method` enum('cash','bkash','nagad','rocket') DEFAULT NULL,
+  `transaction_id` varchar(100) DEFAULT NULL,
   `cancelled_reason` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
@@ -61,6 +63,24 @@ CREATE TABLE `notifications` (
   `is_read` tinyint(1) NOT NULL DEFAULT 0,
   `meta` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`meta`)),
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `payments`
+--
+
+CREATE TABLE `payments` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `user_id` int(10) UNSIGNED NOT NULL,
+  `booking_id` varchar(20) NOT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `payment_method` enum('bkash','nagad','rocket','cash') NOT NULL,
+  `transaction_id` varchar(100) DEFAULT NULL,
+  `status` enum('pending','completed','failed') NOT NULL DEFAULT 'pending',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -182,7 +202,7 @@ CREATE TABLE `technicians` (
 --
 
 INSERT INTO `technicians` (`id`, `user_id`, `service_id`, `experience`, `location`, `bio`, `is_verified`, `is_available`, `rating`, `review_count`, `hourly_rate`, `created_at`, `updated_at`) VALUES
-(1, 3, 1, '8 yrs', 'Andheri, Mumbai', NULL, 1, 1, 4.90, 234, 299.00, '2026-03-27 08:48:52', '2026-03-27 08:48:52');
+(1, 3, 1, '8 yrs', 'Dhaka, Bangladesh', 'Experienced AC repair technician with 8 years of professional service.', 1, 1, 4.90, 234, 299.00, '2026-04-09 00:00:00', '2026-04-09 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -208,9 +228,9 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `name`, `email`, `phone`, `password_hash`, `role`, `avatar_url`, `is_active`, `created_at`, `updated_at`) VALUES
-(1, 'Admin', 'admin@fixbhai.in', '+91 98765 00000', '$2b$12$exampleHashForAdminPassword000000000000000000000000000', 'admin', NULL, 1, '2026-03-27 08:48:51', '2026-03-27 08:48:51'),
-(2, 'Demo User', 'demo@fixbhai.in', '+91 98765 43210', '$2b$12$exampleHashForDemoPassword0000000000000000000000000000', 'customer', NULL, 1, '2026-03-27 08:48:51', '2026-03-27 08:48:51'),
-(3, 'Rajesh Kumar', 'rajesh@fixbhai.in', '+91 98765 11111', '$2b$12$exampleHashForTechPassword0000000000000000000000000000', 'technician', 'https://i.pravatar.cc/150?img=11', 1, '2026-03-27 08:48:51', '2026-03-27 08:48:51');
+(1, 'Admin', 'admin@fixbhai.com', '+8801700000000', '$2y$10$ZUPucHO8K9v59jKQfPY39OIHQUxbjRzKWP4M6Y7uLOA2dxNNY0AA6', 'admin', NULL, 1, '2026-04-09 00:00:00', '2026-04-09 00:00:00'),
+(2, 'Rahim Customer', 'rahim@gmail.com', '+8801800000000', '$2y$10$G6FVMSbfXBvOQ7/5m3ZML.9BC2VruFP4Qmao5rOAKzFWGP4lZzDQe', 'customer', NULL, 1, '2026-04-09 00:00:00', '2026-04-09 00:00:00'),
+(3, 'Karim Technician', 'karim@fixbhai.com', '+8801900000000', '$2y$10$Aok5jP/Khlrcrn7tAn.ZqOl1BwxPabD939yjMkkivGiiRkZKCE.3a', 'technician', 'https://i.pravatar.cc/150?img=11', 1, '2026-04-09 00:00:00', '2026-04-09 00:00:00');
 
 -- --------------------------------------------------------
 
@@ -300,6 +320,16 @@ ALTER TABLE `notifications`
   ADD KEY `idx_notif_unread` (`user_id`,`is_read`);
 
 --
+-- Indexes for table `payments`
+--
+ALTER TABLE `payments`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uq_transaction_id` (`transaction_id`),
+  ADD KEY `idx_payments_user` (`user_id`),
+  ADD KEY `idx_payments_booking` (`booking_id`),
+  ADD KEY `idx_payments_status` (`status`);
+
+--
 -- Indexes for table `refresh_tokens`
 --
 ALTER TABLE `refresh_tokens`
@@ -364,6 +394,12 @@ ALTER TABLE `notifications`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `payments`
+--
+ALTER TABLE `payments`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `refresh_tokens`
 --
 ALTER TABLE `refresh_tokens`
@@ -418,6 +454,13 @@ ALTER TABLE `notifications`
   ADD CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
+-- Constraints for table `payments`
+--
+ALTER TABLE `payments`
+  ADD CONSTRAINT `payments_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  ADD CONSTRAINT `payments_ibfk_2` FOREIGN KEY (`booking_id`) REFERENCES `bookings` (`id`);
+
+--
 -- Constraints for table `refresh_tokens`
 --
 ALTER TABLE `refresh_tokens`
@@ -448,32 +491,3 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-
--- ============================================================
--- PAYMENTS TABLE — Bangladesh mobile banking support
--- Run this after importing the main schema.
--- ============================================================
-
-CREATE TABLE IF NOT EXISTS `payments` (
-  `id`             INT UNSIGNED    NOT NULL AUTO_INCREMENT,
-  `user_id`        INT UNSIGNED    NOT NULL,
-  `booking_id`     VARCHAR(20)     NOT NULL,
-  `amount`         DECIMAL(10,2)   NOT NULL,
-  `payment_method` ENUM('bkash','nagad','rocket','cash') NOT NULL,
-  `transaction_id` VARCHAR(100)    NULL,
-  `status`         ENUM('pending','completed','failed') NOT NULL DEFAULT 'pending',
-  `created_at`     TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at`     TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uq_transaction_id` (`transaction_id`),
-  FOREIGN KEY (`user_id`)    REFERENCES `users`(`id`),
-  FOREIGN KEY (`booking_id`) REFERENCES `bookings`(`id`),
-  INDEX `idx_payments_user`    (`user_id`),
-  INDEX `idx_payments_booking` (`booking_id`),
-  INDEX `idx_payments_status`  (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Also add payment_method + transaction_id to bookings if not present
-ALTER TABLE `bookings`
-  ADD COLUMN IF NOT EXISTS `payment_method`  ENUM('cash','bkash','nagad','rocket') NULL AFTER `payment_status`,
-  ADD COLUMN IF NOT EXISTS `transaction_id`  VARCHAR(100) NULL AFTER `payment_method`;
