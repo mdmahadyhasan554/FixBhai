@@ -2,12 +2,15 @@
 /**
  * POST /api/auth/login
  * Body: { email, password }
- * Returns: { success, user, token }
+ * Returns: { success, user }
+ * Sets session cookie
  */
 require_once __DIR__ . '/../../config/helpers.php';
 require_once __DIR__ . '/../../config/database.php';
 
+// CRITICAL: CORS headers MUST come before session_start()
 cors();
+startSession();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') error('Method not allowed', 405);
 
@@ -17,16 +20,17 @@ if (empty($data['email']) || empty($data['password']))
     error('Email and password are required', 422);
 
 $pdo  = getDB();
-$stmt = $pdo->prepare('SELECT id, name, email, password_hash, role FROM users WHERE email = ? AND is_active = 1');
+$stmt = $pdo->prepare('SELECT id, name, email, phone, password_hash, role, avatar_url FROM users WHERE email = ? AND is_active = 1');
 $stmt->execute([strtolower(trim($data['email']))]);
 $user = $stmt->fetch();
 
 if (!$user || !password_verify($data['password'], $user['password_hash']))
     error('Invalid email or password', 401);
 
-$payload = ['sub' => $user['id'], 'role' => $user['role'], 'email' => $user['email']];
-$token   = generateToken($payload);
+// Set session
+setUserSession($user);
 
+// Remove sensitive data
 unset($user['password_hash']);
 
-json(['success' => true, 'user' => $user, 'token' => $token]);
+json(['success' => true, 'user' => $user]);

@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import useAsync from '../../../hooks/useAsync'
+import { getAllUsers, updateUserRole, updateUserStatus } from '../../../api/adminApi'
 import Button from '../../../components/ui/Button'
 import Input from '../../../components/ui/Input'
 import StatusBadge from '../../../components/common/StatusBadge'
@@ -9,12 +10,22 @@ import StatusBadge from '../../../components/common/StatusBadge'
  * Manage all users - customers, technicians, and admins
  */
 const AdminUsersTab = () => {
-  const [users, setUsers] = useState(MOCK_USERS)
+  const [users, setUsers] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [filterRole, setFilterRole] = useState('all')
   const [selectedUser, setSelectedUser] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const { run, loading } = useAsync()
+
+  // Fetch users on mount
+  useEffect(() => {
+    loadUsers()
+  }, [])
+
+  const loadUsers = () => run(async () => {
+    const response = await getAllUsers()
+    setUsers(response.data || [])
+  })
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -23,10 +34,11 @@ const AdminUsersTab = () => {
     return matchesSearch && matchesRole
   })
 
-  const handleToggleStatus = (userId) => {
-    setUsers(prev => prev.map(u => 
-      u.id === userId ? { ...u, isActive: !u.isActive } : u
-    ))
+  const handleToggleStatus = async (userId, currentStatus) => {
+    await run(async () => {
+      await updateUserStatus(userId, !currentStatus)
+      loadUsers()
+    })
   }
 
   const handleEditUser = (user) => {
@@ -34,8 +46,45 @@ const AdminUsersTab = () => {
     setShowModal(true)
   }
 
+  const handleSaveUser = async (userData) => {
+    try {
+      await run(async () => {
+        if (selectedUser) {
+          // Update existing user
+          let updated = false
+          
+          // Update role if changed
+          if (userData.role !== selectedUser.role) {
+            console.log('Updating role:', selectedUser.id, userData.role)
+            const result = await updateUserRole(selectedUser.id, userData.role)
+            console.log('Role update result:', result)
+            updated = true
+          }
+          
+          // Update status if changed
+          if (userData.is_active !== selectedUser.is_active) {
+            console.log('Updating status:', selectedUser.id, userData.is_active)
+            const result = await updateUserStatus(selectedUser.id, userData.is_active)
+            console.log('Status update result:', result)
+            updated = true
+          }
+          
+          if (updated) {
+            // Reload users to get fresh data
+            await loadUsers()
+          }
+        }
+        setShowModal(false)
+      })
+    } catch (error) {
+      console.error('Error saving user:', error)
+      alert('Failed to update user: ' + (error.message || 'Unknown error'))
+    }
+  }
+
   const handleDeleteUser = (userId) => {
     if (confirm('Are you sure you want to delete this user?')) {
+      // TODO: Implement delete user API
       setUsers(prev => prev.filter(u => u.id !== userId))
     }
   }
@@ -56,9 +105,14 @@ const AdminUsersTab = () => {
           <h4 className="fw-bold mb-1">User Management</h4>
           <p className="text-muted mb-0">Manage all users, roles, and permissions</p>
         </div>
-        <Button variant="primary" onClick={() => { setSelectedUser(null); setShowModal(true) }}>
-          <i className="bi bi-plus-circle me-2" />Add User
-        </Button>
+        <div className="d-flex gap-2">
+          <Button variant="outline-secondary" onClick={loadUsers} disabled={loading}>
+            <i className="bi bi-arrow-clockwise me-2" />Refresh
+          </Button>
+          <Button variant="primary" onClick={() => { setSelectedUser(null); setShowModal(true) }}>
+            <i className="bi bi-plus-circle me-2" />Add User
+          </Button>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -84,7 +138,7 @@ const AdminUsersTab = () => {
               </div>
               <div>
                 <div className="text-muted small">Active Users</div>
-                <div className="fs-4 fw-bold">{users.filter(u => u.isActive).length}</div>
+                <div className="fs-4 fw-bold">{users.filter(u => u.is_active).length}</div>
               </div>
             </div>
           </div>
@@ -195,9 +249,9 @@ const AdminUsersTab = () => {
                       </td>
                       <td className="py-3 text-muted">{user.phone}</td>
                       <td className="py-3">
-                        <StatusBadge status={user.isActive ? 'active' : 'inactive'} />
+                        <StatusBadge status={user.is_active ? 'active' : 'inactive'} />
                       </td>
-                      <td className="py-3 text-muted">{user.joinedAt}</td>
+                      <td className="py-3 text-muted">{new Date(user.created_at).toLocaleDateString()}</td>
                       <td className="py-3 text-end px-4">
                         <div className="btn-group btn-group-sm">
                           <button 
@@ -208,11 +262,11 @@ const AdminUsersTab = () => {
                             <i className="bi bi-pencil" />
                           </button>
                           <button 
-                            className={`btn btn-outline-${user.isActive ? 'warning' : 'success'}`}
-                            onClick={() => handleToggleStatus(user.id)}
-                            title={user.isActive ? 'Deactivate' : 'Activate'}
+                            className={`btn btn-outline-${user.is_active ? 'warning' : 'success'}`}
+                            onClick={() => handleToggleStatus(user.id, user.is_active)}
+                            title={user.is_active ? 'Deactivate' : 'Activate'}
                           >
-                            <i className={`bi bi-${user.isActive ? 'pause' : 'play'}-fill`} />
+                            <i className={`bi bi-${user.is_active ? 'pause' : 'play'}-fill`} />
                           </button>
                           <button 
                             className="btn btn-outline-danger"
@@ -237,14 +291,8 @@ const AdminUsersTab = () => {
         <UserModal
           user={selectedUser}
           onClose={() => setShowModal(false)}
-          onSave={(userData) => {
-            if (selectedUser) {
-              setUsers(prev => prev.map(u => u.id === selectedUser.id ? { ...u, ...userData } : u))
-            } else {
-              setUsers(prev => [...prev, { ...userData, id: Date.now(), joinedAt: new Date().toLocaleDateString() }])
-            }
-            setShowModal(false)
-          }}
+          onSave={handleSaveUser}
+          loading={loading}
         />
       )}
     </div>
@@ -252,13 +300,13 @@ const AdminUsersTab = () => {
 }
 
 // User Modal Component
-const UserModal = ({ user, onClose, onSave }) => {
+const UserModal = ({ user, onClose, onSave, loading }) => {
   const [formData, setFormData] = useState(user || {
     name: '',
     email: '',
     phone: '',
     role: 'customer',
-    isActive: true
+    is_active: true
   })
 
   const handleSubmit = (e) => {
@@ -284,7 +332,9 @@ const UserModal = ({ user, onClose, onSave }) => {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   required
+                  disabled={!!user}
                 />
+                {user && <small className="text-muted">Name cannot be changed</small>}
               </div>
               <div className="mb-3">
                 <label className="form-label fw-semibold">Email</label>
@@ -294,7 +344,9 @@ const UserModal = ({ user, onClose, onSave }) => {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   required
+                  disabled={!!user}
                 />
+                {user && <small className="text-muted">Email cannot be changed</small>}
               </div>
               <div className="mb-3">
                 <label className="form-label fw-semibold">Phone</label>
@@ -304,7 +356,9 @@ const UserModal = ({ user, onClose, onSave }) => {
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   required
+                  disabled={!!user}
                 />
+                {user && <small className="text-muted">Phone cannot be changed</small>}
               </div>
               <div className="mb-3">
                 <label className="form-label fw-semibold">Role</label>
@@ -323,8 +377,8 @@ const UserModal = ({ user, onClose, onSave }) => {
                   type="checkbox"
                   className="form-check-input"
                   id="isActive"
-                  checked={formData.isActive}
-                  onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                  checked={formData.is_active}
+                  onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
                 />
                 <label className="form-check-label" htmlFor="isActive">
                   Active Account
@@ -332,9 +386,9 @@ const UserModal = ({ user, onClose, onSave }) => {
               </div>
             </div>
             <div className="modal-footer border-0">
-              <Button variant="outline-secondary" onClick={onClose}>Cancel</Button>
-              <Button variant="primary" type="submit">
-                {user ? 'Update User' : 'Add User'}
+              <Button variant="outline-secondary" onClick={onClose} disabled={loading}>Cancel</Button>
+              <Button variant="primary" type="submit" disabled={loading}>
+                {loading ? 'Saving...' : user ? 'Update User' : 'Add User'}
               </Button>
             </div>
           </form>
@@ -343,14 +397,5 @@ const UserModal = ({ user, onClose, onSave }) => {
     </div>
   )
 }
-
-// Mock Data
-const MOCK_USERS = [
-  { id: 1, name: 'Admin User', email: 'admin@fixbhai.com', phone: '+8801700000000', role: 'admin', isActive: true, joinedAt: '2024-01-15' },
-  { id: 2, name: 'Rahim Customer', email: 'rahim@gmail.com', phone: '+8801800000000', role: 'customer', isActive: true, joinedAt: '2024-02-20' },
-  { id: 3, name: 'Karim Technician', email: 'karim@fixbhai.com', phone: '+8801900000000', role: 'technician', isActive: true, joinedAt: '2024-01-10' },
-  { id: 4, name: 'Sara Ahmed', email: 'sara@gmail.com', phone: '+8801711111111', role: 'customer', isActive: true, joinedAt: '2024-03-05' },
-  { id: 5, name: 'Jamal Hassan', email: 'jamal@fixbhai.com', phone: '+8801722222222', role: 'technician', isActive: false, joinedAt: '2024-02-15' },
-]
 
 export default AdminUsersTab

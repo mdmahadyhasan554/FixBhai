@@ -1,5 +1,4 @@
 import { AuthProvider }    from './context/AuthContext'
-import { BookingProvider } from './context/BookingContext'
 import { ToastProvider }   from './context/ToastContext'
 import ErrorBoundary       from './components/common/ErrorBoundary'
 import AppRoutes           from './routes'
@@ -10,18 +9,18 @@ import AppRoutes           from './routes'
  * Provider order:
  *   ErrorBoundary  — outermost crash handler
  *   ToastProvider  — global notifications (used by contexts + components)
- *   AuthProvider   — JWT token + user state
- *   BookingProvider — booking list + mutations
+ *   AuthProvider   — session-based authentication
  *   AppRoutes      — all route definitions
+ * 
+ * Note: BookingProvider is now scoped to specific routes that need it,
+ * not globally. This prevents unnecessary API calls on public pages.
  */
 function App() {
   return (
     <ErrorBoundary>
       <ToastProvider>
         <AuthProvider>
-          <BookingProvider>
-            <AppRoutes />
-          </BookingProvider>
+          <AppRoutes />
         </AuthProvider>
       </ToastProvider>
     </ErrorBoundary>

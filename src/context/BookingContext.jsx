@@ -27,6 +27,7 @@ import {
 } from '../services/bookingService'
 import { generateBookingId } from '../utils/formatters'
 import { useToast } from './ToastContext'
+import { useAuth } from './AuthContext' // Import useAuth
 
 // ── Seed data (shown before API loads) ───────────────────
 const SEED = [
@@ -104,9 +105,13 @@ const BookingContext = createContext(null)
 export const BookingProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, INITIAL)
   const { toast }         = useToast()
+  const { isAuthenticated } = useAuth() // Import useAuth to check authentication
 
-  // ── Load bookings on mount ───────────────────────────────
+  // ── Load bookings on mount (only if authenticated) ───────
   useEffect(() => {
+    // Don't fetch bookings if user is not authenticated
+    if (!isAuthenticated) return
+
     let cancelled = false
     const load = async () => {
       dispatch({ type: A.FETCH_START })
@@ -122,7 +127,7 @@ export const BookingProvider = ({ children }) => {
     }
     load()
     return () => { cancelled = true }
-  }, [])
+  }, [isAuthenticated]) // Re-run when authentication status changes
 
   // ── addBooking — optimistic create ───────────────────────
   const addBooking = useCallback(async (formData) => {

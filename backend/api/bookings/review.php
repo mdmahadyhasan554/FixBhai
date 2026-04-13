@@ -10,7 +10,9 @@
 require_once __DIR__ . '/../../config/helpers.php';
 require_once __DIR__ . '/../../config/database.php';
 
+// CRITICAL: CORS headers MUST come before session_start()
 cors();
+startSession();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') error('Method not allowed', 405);
 

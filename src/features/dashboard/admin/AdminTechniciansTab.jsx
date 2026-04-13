@@ -1,60 +1,66 @@
-import { useState } from 'react'
-import { TECHNICIANS } from '../../../api/data'
+import { useState, useEffect } from 'react'
+import useAsync from '../../../hooks/useAsync'
+import { getAllTechnicians, updateTechnicianStatus, updateTechnicianSpecialization } from '../../../api/adminApi'
 import Button from '../../../components/ui/Button'
 import StatusBadge from '../../../components/common/StatusBadge'
+import { TECHNICIAN_SPECIALIZATIONS } from '../../../constants'
 
 /**
  * AdminTechniciansTab
  * Manage technician profiles, approvals, and performance
  */
 const AdminTechniciansTab = () => {
-  const [technicians, setTechnicians] = useState(TECHNICIANS.map(t => ({
-    ...t,
-    status: t.available ? 'approved' : 'pending',
-    totalJobs: Math.floor(Math.random() * 100) + 20,
-    completionRate: (Math.random() * 20 + 80).toFixed(1)
-  })))
+  const [technicians, setTechnicians] = useState([])
   const [filterStatus, setFilterStatus] = useState('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedTech, setSelectedTech] = useState(null)
+  const { run, loading } = useAsync()
+
+  // Fetch technicians on mount
+  useEffect(() => {
+    loadTechnicians()
+  }, [])
+
+  const loadTechnicians = () => run(async () => {
+    const response = await getAllTechnicians()
+    setTechnicians(response.data || [])
+  })
 
   const filteredTechs = technicians.filter(tech => {
     const matchesSearch = tech.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         tech.service.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = filterStatus === 'all' || tech.status === filterStatus
+                         tech.email.toLowerCase().includes(searchTerm.toLowerCase())
+    const status = tech.is_active ? 'approved' : 'suspended'
+    const matchesStatus = filterStatus === 'all' || status === filterStatus
     return matchesSearch && matchesStatus
   })
 
-  const handleApprove = (id) => {
-    setTechnicians(prev => prev.map(t => 
-      t.id === id ? { ...t, status: 'approved', available: true } : t
-    ))
+  const handleApprove = async (id) => {
+    await run(async () => {
+      await updateTechnicianStatus(id, 'approved')
+      loadTechnicians()
+    })
   }
 
-  const handleSuspend = (id) => {
-    setTechnicians(prev => prev.map(t => 
-      t.id === id ? { ...t, status: 'suspended', available: false } : t
-    ))
+  const handleSuspend = async (id) => {
+    await run(async () => {
+      await updateTechnicianStatus(id, 'suspended')
+      loadTechnicians()
+    })
   }
 
   const handleReject = (id) => {
     if (confirm('Are you sure you want to reject this technician?')) {
-      setTechnicians(prev => prev.filter(t => t.id !== id))
+      handleSuspend(id)
     }
   }
 
-  const getStatusColor = (status) => {
-    switch(status) {
-      case 'approved': return 'success'
-      case 'pending': return 'warning'
-      case 'suspended': return 'danger'
-      default: return 'secondary'
-    }
+  const getStatusColor = (isActive) => {
+    return isActive ? 'success' : 'danger'
   }
 
-  const pendingCount = technicians.filter(t => t.status === 'pending').length
-  const approvedCount = technicians.filter(t => t.status === 'approved').length
-  const suspendedCount = technicians.filter(t => t.status === 'suspended').length
+  const pendingCount = 0 // No pending status in current DB
+  const approvedCount = technicians.filter(t => t.is_active).length
+  const suspendedCount = technicians.filter(t => !t.is_active).length
 
   return (
     <div>
@@ -64,11 +70,16 @@ const AdminTechniciansTab = () => {
           <h4 className="fw-bold mb-1">Technician Management</h4>
           <p className="text-muted mb-0">Approve, manage, and monitor technician performance</p>
         </div>
-        {pendingCount > 0 && (
-          <span className="badge bg-warning text-dark px-3 py-2">
-            {pendingCount} Pending Approval{pendingCount > 1 ? 's' : ''}
-          </span>
-        )}
+        <div className="d-flex gap-2 align-items-center">
+          <Button variant="outline-secondary" onClick={loadTechnicians} disabled={loading}>
+            <i className="bi bi-arrow-clockwise me-2" />Refresh
+          </Button>
+          {pendingCount > 0 && (
+            <span className="badge bg-warning text-dark px-3 py-2">
+              {pendingCount} Pending Approval{pendingCount > 1 ? 's' : ''}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -163,7 +174,16 @@ const AdminTechniciansTab = () => {
 
       {/* Technicians Grid */}
       <div className="row g-4">
-        {filteredTechs.length === 0 ? (
+        {loading ? (
+          <div className="col-12">
+            <div className="card border-0 shadow-sm rounded-4 p-5 text-center">
+              <div className="spinner-border text-primary mb-3" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+              <p className="text-muted mb-0">Loading technicians...</p>
+            </div>
+          </div>
+        ) : filteredTechs.length === 0 ? (
           <div className="col-12">
             <div className="card border-0 shadow-sm rounded-4 p-5 text-center">
               <i className="bi bi-inbox fs-1 text-muted mb-3" />
@@ -171,35 +191,44 @@ const AdminTechniciansTab = () => {
             </div>
           </div>
         ) : (
-          filteredTechs.map(tech => (
+          filteredTechs.map(tech => {
+            const status = tech.is_active ? 'approved' : 'suspended'
+            const statusColor = getStatusColor(tech.is_active)
+            
+            return (
             <div key={tech.id} className="col-md-6 col-lg-4">
               <div className="card border-0 shadow-sm rounded-4 h-100">
                 <div className="card-body p-4">
                   {/* Header */}
                   <div className="d-flex align-items-start gap-3 mb-3">
-                    <img
-                      src={tech.avatar}
-                      alt={tech.name}
-                      className="rounded-circle"
-                      style={{ width: 60, height: 60, objectFit: 'cover' }}
-                    />
+                    <div 
+                      className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold"
+                      style={{ width: 60, height: 60, fontSize: '1.5rem' }}
+                    >
+                      {tech.name.charAt(0)}
+                    </div>
                     <div className="flex-grow-1">
                       <div className="d-flex align-items-start justify-content-between">
                         <div>
                           <h6 className="fw-bold mb-1">{tech.name}</h6>
-                          <div className="text-muted small">{tech.service}</div>
+                          <div className="text-muted small">{tech.email}</div>
+                          {tech.specialization_display && (
+                            <div className="mt-1">
+                              <span className="badge bg-info bg-opacity-10 text-info">
+                                <i className="bi bi-tools me-1" />
+                                {tech.specialization_display}
+                              </span>
+                            </div>
+                          )}
                         </div>
-                        {tech.verified && (
-                          <i className="bi bi-patch-check-fill text-primary" title="Verified" />
-                        )}
                       </div>
                     </div>
                   </div>
 
                   {/* Status Badge */}
                   <div className="mb-3">
-                    <span className={`badge bg-${getStatusColor(tech.status)} bg-opacity-10 text-${getStatusColor(tech.status)} px-3 py-2`}>
-                      {tech.status.charAt(0).toUpperCase() + tech.status.slice(1)}
+                    <span className={`badge bg-${statusColor} bg-opacity-10 text-${statusColor} px-3 py-2`}>
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
                     </span>
                   </div>
 
@@ -210,26 +239,26 @@ const AdminTechniciansTab = () => {
                         <div className="text-muted small">Rating</div>
                         <div className="fw-bold">
                           <i className="bi bi-star-fill text-warning me-1" />
-                          {tech.rating}
+                          {tech.avg_rating || 'N/A'}
                         </div>
                       </div>
                     </div>
                     <div className="col-6">
                       <div className="bg-light rounded-3 p-2 text-center">
                         <div className="text-muted small">Jobs</div>
-                        <div className="fw-bold">{tech.totalJobs}</div>
+                        <div className="fw-bold">{tech.total_jobs}</div>
                       </div>
                     </div>
                     <div className="col-6">
                       <div className="bg-light rounded-3 p-2 text-center">
-                        <div className="text-muted small">Experience</div>
-                        <div className="fw-bold">{tech.experience}</div>
+                        <div className="text-muted small">Completed</div>
+                        <div className="fw-bold">{tech.completed_jobs}</div>
                       </div>
                     </div>
                     <div className="col-6">
                       <div className="bg-light rounded-3 p-2 text-center">
-                        <div className="text-muted small">Completion</div>
-                        <div className="fw-bold">{tech.completionRate}%</div>
+                        <div className="text-muted small">Rate</div>
+                        <div className="fw-bold">{tech.completion_rate}%</div>
                       </div>
                     </div>
                   </div>
@@ -240,32 +269,13 @@ const AdminTechniciansTab = () => {
                       <i className="bi bi-telephone me-2" />{tech.phone}
                     </div>
                     <div className="small text-muted">
-                      <i className="bi bi-geo-alt me-2" />{tech.location}
+                      <i className="bi bi-calendar me-2" />Joined {new Date(tech.created_at).toLocaleDateString()}
                     </div>
                   </div>
 
                   {/* Actions */}
                   <div className="d-flex gap-2">
-                    {tech.status === 'pending' && (
-                      <>
-                        <Button 
-                          variant="success" 
-                          size="sm" 
-                          className="flex-grow-1"
-                          onClick={() => handleApprove(tech.id)}
-                        >
-                          <i className="bi bi-check-lg me-1" />Approve
-                        </Button>
-                        <Button 
-                          variant="outline-danger" 
-                          size="sm"
-                          onClick={() => handleReject(tech.id)}
-                        >
-                          <i className="bi bi-x-lg" />
-                        </Button>
-                      </>
-                    )}
-                    {tech.status === 'approved' && (
+                    {status === 'approved' && (
                       <>
                         <Button 
                           variant="outline-primary" 
@@ -285,7 +295,7 @@ const AdminTechniciansTab = () => {
                         </Button>
                       </>
                     )}
-                    {tech.status === 'suspended' && (
+                    {status === 'suspended' && (
                       <Button 
                         variant="success" 
                         size="sm" 
@@ -299,7 +309,7 @@ const AdminTechniciansTab = () => {
                 </div>
               </div>
             </div>
-          ))
+          )})
         )}
       </div>
 
@@ -315,66 +325,147 @@ const AdminTechniciansTab = () => {
 }
 
 // Technician Details Modal
-const TechnicianModal = ({ technician, onClose }) => (
-  <div className="modal show d-block" style={{ background: 'rgba(0,0,0,0.5)' }}>
-    <div className="modal-dialog modal-dialog-centered modal-lg">
-      <div className="modal-content rounded-4 border-0 shadow-lg">
-        <div className="modal-header border-0">
-          <h5 className="modal-title fw-bold">Technician Details</h5>
-          <button type="button" className="btn-close" onClick={onClose} />
-        </div>
-        <div className="modal-body">
-          <div className="row">
-            <div className="col-md-4 text-center mb-4 mb-md-0">
-              <img
-                src={technician.avatar}
-                alt={technician.name}
-                className="rounded-circle mb-3"
-                style={{ width: 120, height: 120, objectFit: 'cover' }}
-              />
-              <h5 className="fw-bold mb-1">{technician.name}</h5>
-              <div className="text-muted mb-2">{technician.service}</div>
-              <div className="mb-3">
-                <i className="bi bi-star-fill text-warning me-1" />
-                <span className="fw-bold">{technician.rating}</span>
-                <span className="text-muted small"> ({technician.reviews} reviews)</span>
+const TechnicianModal = ({ technician, onClose }) => {
+  const [isEditing, setIsEditing] = useState(false)
+  const [specialization, setSpecialization] = useState(technician.specialization || '')
+  const [specializationOther, setSpecializationOther] = useState(technician.specialization_other || '')
+  const { run, loading } = useAsync()
+
+  const handleSaveSpecialization = async () => {
+    await run(async () => {
+      await updateTechnicianSpecialization(
+        technician.id, 
+        specialization,
+        specialization === 'Other' ? specializationOther : null
+      )
+      setIsEditing(false)
+      // Reload page to show updated data
+      window.location.reload()
+    })
+  }
+
+  return (
+    <div className="modal show d-block" style={{ background: 'rgba(0,0,0,0.5)' }}>
+      <div className="modal-dialog modal-dialog-centered modal-lg">
+        <div className="modal-content rounded-4 border-0 shadow-lg">
+          <div className="modal-header border-0">
+            <h5 className="modal-title fw-bold">Technician Details</h5>
+            <button type="button" className="btn-close" onClick={onClose} />
+          </div>
+          <div className="modal-body">
+            <div className="row">
+              <div className="col-md-4 text-center mb-4 mb-md-0">
+                <div 
+                  className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold mx-auto mb-3"
+                  style={{ width: 120, height: 120, fontSize: '3rem' }}
+                >
+                  {technician.name.charAt(0)}
+                </div>
+                <h5 className="fw-bold mb-1">{technician.name}</h5>
+                <div className="text-muted mb-2">{technician.email}</div>
+                <div className="mb-3">
+                  <i className="bi bi-star-fill text-warning me-1" />
+                  <span className="fw-bold">{technician.avg_rating || 'N/A'}</span>
+                </div>
               </div>
-            </div>
-            <div className="col-md-8">
-              <h6 className="fw-bold mb-3">Contact Information</h6>
-              <div className="mb-3">
-                <div className="text-muted small">Phone</div>
-                <div className="fw-semibold">{technician.phone}</div>
-              </div>
-              <div className="mb-3">
-                <div className="text-muted small">Location</div>
-                <div className="fw-semibold">{technician.location}</div>
-              </div>
-              <div className="mb-3">
-                <div className="text-muted small">Experience</div>
-                <div className="fw-semibold">{technician.experience}</div>
-              </div>
-              <div className="mb-3">
-                <div className="text-muted small">Hourly Rate</div>
-                <div className="fw-semibold">৳{technician.price}/hr</div>
-              </div>
-              <div className="mb-3">
-                <div className="text-muted small">Total Jobs Completed</div>
-                <div className="fw-semibold">{technician.totalJobs}</div>
-              </div>
-              <div className="mb-3">
-                <div className="text-muted small">Completion Rate</div>
-                <div className="fw-semibold">{technician.completionRate}%</div>
+              <div className="col-md-8">
+                <h6 className="fw-bold mb-3">Contact Information</h6>
+                <div className="mb-3">
+                  <div className="text-muted small">Phone</div>
+                  <div className="fw-semibold">{technician.phone}</div>
+                </div>
+                <div className="mb-3">
+                  <div className="text-muted small">Email</div>
+                  <div className="fw-semibold">{technician.email}</div>
+                </div>
+                
+                <h6 className="fw-bold mb-3 mt-4">Specialization</h6>
+                {!isEditing ? (
+                  <div className="mb-3">
+                    <div className="d-flex align-items-center gap-2">
+                      <span className="badge bg-info bg-opacity-10 text-info px-3 py-2">
+                        <i className="bi bi-tools me-2" />
+                        {technician.specialization_display || 'Not set'}
+                      </span>
+                      <button 
+                        className="btn btn-sm btn-outline-primary"
+                        onClick={() => setIsEditing(true)}
+                      >
+                        <i className="bi bi-pencil" /> Edit
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mb-3">
+                    <select
+                      className="form-select mb-2"
+                      value={specialization}
+                      onChange={(e) => setSpecialization(e.target.value)}
+                    >
+                      <option value="">Select specialization...</option>
+                      {TECHNICIAN_SPECIALIZATIONS.map(spec => (
+                        <option key={spec.value} value={spec.value}>
+                          {spec.label}
+                        </option>
+                      ))}
+                    </select>
+                    {specialization === 'Other' && (
+                      <input
+                        type="text"
+                        className="form-control mb-2"
+                        placeholder="Specify other specialization..."
+                        value={specializationOther}
+                        onChange={(e) => setSpecializationOther(e.target.value)}
+                      />
+                    )}
+                    <div className="d-flex gap-2">
+                      <Button 
+                        variant="primary" 
+                        size="sm"
+                        onClick={handleSaveSpecialization}
+                        disabled={loading || !specialization}
+                      >
+                        {loading ? 'Saving...' : 'Save'}
+                      </Button>
+                      <Button 
+                        variant="outline-secondary" 
+                        size="sm"
+                        onClick={() => setIsEditing(false)}
+                        disabled={loading}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                
+                <h6 className="fw-bold mb-3 mt-4">Performance</h6>
+                <div className="mb-3">
+                  <div className="text-muted small">Status</div>
+                  <div className="fw-semibold">{technician.is_active ? 'Active' : 'Suspended'}</div>
+                </div>
+                <div className="mb-3">
+                  <div className="text-muted small">Total Jobs Completed</div>
+                  <div className="fw-semibold">{technician.total_jobs}</div>
+                </div>
+                <div className="mb-3">
+                  <div className="text-muted small">Completion Rate</div>
+                  <div className="fw-semibold">{technician.completion_rate}%</div>
+                </div>
+                <div className="mb-3">
+                  <div className="text-muted small">Joined Date</div>
+                  <div className="fw-semibold">{new Date(technician.created_at).toLocaleDateString()}</div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div className="modal-footer border-0">
-          <Button variant="outline-secondary" onClick={onClose}>Close</Button>
+          <div className="modal-footer border-0">
+            <Button variant="outline-secondary" onClick={onClose}>Close</Button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-)
+  )
+}
 
 export default AdminTechniciansTab

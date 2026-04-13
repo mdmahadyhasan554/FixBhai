@@ -3,5 +3,13 @@ Options -Indexes
 # Rewrite engine for clean URLs (if needed)
 RewriteEngine On
 
+# CRITICAL: Pass Authorization header to PHP
+# Apache strips Authorization header by default - this fixes it
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+# Alternative method for Authorization header
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+
 # All CORS handling is done in PHP (helpers.php cors() function)
 # No CORS headers here to avoid conflicts

@@ -9,8 +9,10 @@
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/helpers.php';
 
+// CRITICAL: CORS headers MUST come before session_start()
 header('Content-Type: application/json');
 cors();
+startSession();
 
 // Only DELETE allowed
 if ($_SERVER['REQUEST_METHOD'] !== 'DELETE') {
@@ -27,7 +29,7 @@ if (!$user) {
     exit;
 }
 
-$db = getDBConnection();
+$db = getDB();
 
 // Get current avatar
 $stmt = $db->prepare("SELECT avatar_url FROM users WHERE id = ?");

@@ -1,17 +1,21 @@
 <?php
 /**
  * GET /api/bookings/user
- * Header: Authorization: Bearer <token>
  * Returns: { success, data: Booking[], total }
+ * Uses session authentication
  */
 require_once __DIR__ . '/../../config/helpers.php';
 require_once __DIR__ . '/../../config/database.php';
 
+// CRITICAL: CORS headers MUST come before session_start()
 cors();
+startSession();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') error('Method not allowed', 405);
 
+// Authenticate user
 $auth = requireAuth();
+
 $pdo  = getDB();
 
 $stmt = $pdo->prepare('

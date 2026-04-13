@@ -9,8 +9,10 @@
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/helpers.php';
 
+// CRITICAL: CORS headers MUST come before session_start()
 header('Content-Type: application/json');
 cors();
+startSession();
 
 // Only PUT allowed
 if ($_SERVER['REQUEST_METHOD'] !== 'PUT') {
@@ -36,7 +38,7 @@ if (!$data) {
     exit;
 }
 
-$db = getDBConnection();
+$db = getDB();
 $updates = [];
 $params = [];
 

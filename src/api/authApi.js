@@ -24,8 +24,15 @@ export const getProfile = async () => {
   return client.get('/auth/me.php')
 }
 
-// PHP backend is stateless — logout just clears the client-side token
-export const logout = async () => Promise.resolve()
+// Logout - calls backend to destroy session
+export const logout = async () => {
+  try {
+    return await client.post('/auth/logout.php')
+  } catch {
+    // Ignore errors, session will expire anyway
+    return Promise.resolve()
+  }
+}
 
 export const refreshToken = async (token) => {
   if (USE_MOCK) return Promise.resolve({ token: 'mock_refreshed_' + Date.now() })

@@ -2,19 +2,21 @@
  * AuthContext
  *
  * Manages:
- *   - user object + token (persisted to localStorage)
- *   - authentication status
+ *   - user object (persisted to localStorage for UI)
+ *   - authentication status (via session cookies)
  *   - async login / register / logout with loading + error states
- *   - token refresh on app init
  *
  * Exposes via useAuth():
- *   user, token, isAuthenticated
+ *   user, isAuthenticated
  *   loading, error
- *   login(credentials)   → calls authService, stores result
- *   register(userData)   → calls authService, stores result
- *   logout()             → clears state + storage
+ *   login(credentials)   → calls authService, stores user data
+ *   register(userData)   → calls authService, stores user data
+ *   logout()             → clears state + destroys session
  *   clearError()         → resets error state
  *   updateUser(partial)  → merge partial user data (e.g. after profile edit)
+ * 
+ * Note: Authentication uses PHP sessions with HttpOnly cookies.
+ * The session cookie is automatically sent with all API requests.
  */
 import { createContext, useContext, useReducer, useCallback } from 'react'
 import useLocalStorage from '../hooks/useLocalStorage'
@@ -55,19 +57,17 @@ const AuthContext = createContext(null)
 
 export const AuthProvider = ({ children }) => {
   const [user,  setUser]  = useLocalStorage('fixbhai_user',  null)
-  const [token, setToken] = useLocalStorage('fixbhai_token', null)
   const [state, dispatch] = useReducer(authReducer, INITIAL_STATE)
   const { toast }         = useToast()
 
-  const isAuthenticated = Boolean(user && token)
+  const isAuthenticated = Boolean(user)
 
   // ── Actions ─────────────────────────────────────────────
 
   const login = useCallback(async (credentials) => {
     dispatch({ type: AUTH_ACTIONS.REQUEST })
     try {
-      const { user: userData, token: authToken } = await loginUser(credentials)
-      setToken(authToken)
+      const { user: userData } = await loginUser(credentials)
       setUser(userData)
       dispatch({ type: AUTH_ACTIONS.SUCCESS })
       toast.success(`Welcome back, ${userData.name}!`)
@@ -78,13 +78,12 @@ export const AuthProvider = ({ children }) => {
       toast.error(msg)
       throw err
     }
-  }, [setToken, setUser])
+  }, [setUser])
 
   const register = useCallback(async (userData) => {
     dispatch({ type: AUTH_ACTIONS.REQUEST })
     try {
-      const { user: newUser, token: authToken } = await registerUser(userData)
-      setToken(authToken)
+      const { user: newUser } = await registerUser(userData)
       setUser(newUser)
       dispatch({ type: AUTH_ACTIONS.SUCCESS })
       toast.success(`Account created! Welcome, ${newUser.name}!`)
@@ -95,7 +94,7 @@ export const AuthProvider = ({ children }) => {
       toast.error(msg)
       throw err
     }
-  }, [setToken, setUser])
+  }, [setUser])
 
   const logout = useCallback(async () => {
     try {
@@ -103,10 +102,9 @@ export const AuthProvider = ({ children }) => {
     } catch {
       // Ignore server-side logout errors — always clear local state
     } finally {
-      setToken(null)
       setUser(null)
     }
-  }, [setToken, setUser])
+  }, [setUser])
 
   const clearError = useCallback(() => {
     dispatch({ type: AUTH_ACTIONS.CLEAR_ERROR })
@@ -127,7 +125,6 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider value={{
       // State
       user,
-      token,
       isAuthenticated,
       isAdmin,
       isTech,

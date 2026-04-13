@@ -1,44 +1,101 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import useAsync from '../../../hooks/useAsync'
+import { getAllBookings } from '../../../api/adminApi'
 import DataTable from '../DataTable'
 import StatusBadge from '../../../components/common/StatusBadge'
-import { useBooking } from '../../../context/BookingContext'
 import { BOOKING_STATUS_FILTERS } from '../../../constants'
+import { changeStatus as apiChangeStatus } from '../../../services/bookingService'
+import { useToast } from '../../../context/ToastContext'
+import Button from '../../../components/ui/Button'
 
 const COLUMNS = [
-  { key: 'id',         label: 'Booking ID',  render: v => <span className="text-muted small fw-mono">{v}</span> },
-  { key: 'service',    label: 'Service',     render: v => <span className="fw-semibold">{v}</span> },
-  { key: 'technician', label: 'Technician',  hideOnMobile: true },
-  { key: 'date',       label: 'Date',        hideOnMobile: true, render: (v, row) => <span className="text-muted small">{v} {row.time}</span> },
-  { key: 'amount',     label: 'Amount',      render: v => <span className="fw-semibold text-primary">৳{v}</span> },
-  { key: 'status',     label: 'Status',      render: v => <StatusBadge status={v} /> },
-  { key: 'id',         label: 'Actions',     render: (v, row) => <AdminBookingActions booking={row} /> },
+  { key: 'id',           label: 'Booking ID',  render: v => <span className="text-muted small fw-mono">#{v}</span> },
+  { key: 'customer_name', label: 'Customer',    render: v => <span className="fw-semibold">{v}</span> },
+  { key: 'service_name', label: 'Service',     render: v => <span className="fw-semibold">{v}</span> },
+  { key: 'technician_name', label: 'Technician',  hideOnMobile: true, render: v => v || <span className="text-muted">Not assigned</span> },
+  { key: 'booking_date', label: 'Date',        hideOnMobile: true, render: (v, row) => <span className="text-muted small">{v} {row.booking_time}</span> },
+  { key: 'total_amount', label: 'Amount',      render: v => <span className="fw-semibold text-primary">৳{v}</span> },
+  { key: 'status',       label: 'Status',      render: v => <StatusBadge status={v} /> },
+  { key: 'actions',      label: 'Actions',     render: () => null }, // Will be replaced dynamically
 ]
 
-const AdminBookingActions = ({ booking }) => {
-  const { updateStatus } = useBooking()
+const AdminBookingActions = ({ booking, onUpdate }) => {
+  const { toast } = useToast()
+  const [loading, setLoading] = useState(false)
+
+  const handleStatusChange = async (newStatus) => {
+    setLoading(true)
+    try {
+      await apiChangeStatus(booking.id, newStatus)
+      toast.success('Booking status updated.')
+      onUpdate() // Reload bookings
+    } catch (err) {
+      toast.error(err?.message || 'Failed to update booking')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   if (booking.status === 'pending') return (
     <div className="d-flex gap-1">
-      <button className="btn btn-xs btn-outline-success rounded-pill px-2 py-0"
+      <button 
+        className="btn btn-xs btn-outline-success rounded-pill px-2 py-0"
         style={{ fontSize: '0.72rem' }}
-        onClick={() => updateStatus(booking.id, 'confirmed')}>Confirm</button>
-      <button className="btn btn-xs btn-outline-danger rounded-pill px-2 py-0"
+        onClick={() => handleStatusChange('confirmed')}
+        disabled={loading}
+      >
+        Confirm
+      </button>
+      <button 
+        className="btn btn-xs btn-outline-danger rounded-pill px-2 py-0"
         style={{ fontSize: '0.72rem' }}
-        onClick={() => updateStatus(booking.id, 'cancelled')}>Cancel</button>
+        onClick={() => handleStatusChange('cancelled')}
+        disabled={loading}
+      >
+        Cancel
+      </button>
     </div>
   )
   if (booking.status === 'confirmed') return (
-    <button className="btn btn-xs btn-outline-success rounded-pill px-2 py-0"
+    <button 
+      className="btn btn-xs btn-outline-success rounded-pill px-2 py-0"
       style={{ fontSize: '0.72rem' }}
-      onClick={() => updateStatus(booking.id, 'completed')}>Mark Done</button>
+      onClick={() => handleStatusChange('completed')}
+      disabled={loading}
+    >
+      Mark Done
+    </button>
   )
   return <span className="text-muted small">—</span>
 }
 
 const AdminBookingsTab = () => {
-  const { bookings } = useBooking()
+  const [bookings, setBookings] = useState([])
   const [filter, setFilter] = useState('all')
+  const { run, loading } = useAsync()
+
+  // Fetch all bookings on mount
+  useEffect(() => {
+    loadBookings()
+  }, [])
+
+  const loadBookings = () => run(async () => {
+    const response = await getAllBookings()
+    setBookings(response.data || [])
+  })
 
   const filtered = filter === 'all' ? bookings : bookings.filter(b => b.status === filter)
+
+  // Create columns with onUpdate callback
+  const columnsWithActions = COLUMNS.map(col => {
+    if (col.label === 'Actions') {
+      return {
+        ...col,
+        render: (v, row) => <AdminBookingActions booking={row} onUpdate={loadBookings} />
+      }
+    }
+    return col
+  })
 
   return (
     <div>
@@ -47,6 +104,9 @@ const AdminBookingsTab = () => {
           <h6 className="fw-bold mb-0">All Bookings</h6>
           <p className="text-muted small mb-0">{filtered.length} bookings</p>
         </div>
+        <Button variant="outline-secondary" onClick={loadBookings} disabled={loading}>
+          <i className="bi bi-arrow-clockwise me-2" />Refresh
+        </Button>
       </div>
 
       {/* Status filter tabs */}
@@ -66,7 +126,20 @@ const AdminBookingsTab = () => {
 
       <div className="card border-0 shadow-sm rounded-4">
         <div className="card-body p-0">
-          <DataTable columns={COLUMNS} rows={filtered} emptyMsg="No bookings match this filter" />
+          {loading ? (
+            <div className="text-center py-5">
+              <div className="spinner-border text-primary mb-3" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+              <p className="text-muted mb-0">Loading bookings...</p>
+            </div>
+          ) : (
+            <DataTable 
+              columns={columnsWithActions} 
+              rows={filtered} 
+              emptyMsg="No bookings match this filter" 
+            />
+          )}
         </div>
       </div>
     </div>

@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import Layout          from '../components/layout/Layout'
 import ProtectedRoute  from '../components/common/ProtectedRoute'
 import GuestRoute      from '../components/common/GuestRoute'
+import { BookingProvider } from '../context/BookingContext'
 import { ROUTES }      from '../constants'
 
 // ── Pages ─────────────────────────────────────────────────
@@ -30,10 +31,17 @@ import NotFoundPage         from '../pages/NotFoundPage'
  *   All routes except DashboardPage, AdminPage, TechnicianPortalPage
  *   are wrapped in <Layout> (Navbar + Footer).
  *   Dashboard-style pages manage their own full-screen layout.
+ * 
+ * BookingProvider:
+ *   Only wraps routes that need booking data to prevent unnecessary
+ *   API calls on public pages.
  */
 
 /** Wraps a page with the shared Navbar + Footer shell */
 const WithLayout = ({ children }) => <Layout>{children}</Layout>
+
+/** Wraps a page with BookingProvider for booking data access */
+const WithBookings = ({ children }) => <BookingProvider>{children}</BookingProvider>
 
 const AppRoutes = () => (
   <Routes>
@@ -57,7 +65,9 @@ const AppRoutes = () => (
       path={ROUTES.BOOKING}
       element={
         <ProtectedRoute>
-          <WithLayout><BookingPage /></WithLayout>
+          <WithBookings>
+            <WithLayout><BookingPage /></WithLayout>
+          </WithBookings>
         </ProtectedRoute>
       }
     />
@@ -85,7 +95,9 @@ const AppRoutes = () => (
       path={ROUTES.DASHBOARD}
       element={
         <ProtectedRoute>
-          <DashboardPage />
+          <WithBookings>
+            <DashboardPage />
+          </WithBookings>
         </ProtectedRoute>
       }
     />
@@ -97,7 +109,9 @@ const AppRoutes = () => (
       path={ROUTES.ADMIN}
       element={
         <ProtectedRoute roles={['admin']} fallback={ROUTES.DASHBOARD}>
-          <WithLayout><AdminPage /></WithLayout>
+          <WithBookings>
+            <WithLayout><AdminPage /></WithLayout>
+          </WithBookings>
         </ProtectedRoute>
       }
     />
@@ -107,7 +121,9 @@ const AppRoutes = () => (
       path={ROUTES.TECH_PORTAL}
       element={
         <ProtectedRoute roles={['technician']} fallback={ROUTES.DASHBOARD}>
-          <TechnicianPortalPage />
+          <WithBookings>
+            <TechnicianPortalPage />
+          </WithBookings>
         </ProtectedRoute>
       }
     />

@@ -1,13 +1,15 @@
 <?php
 /**
  * GET /api/auth/me
- * Header: Authorization: Bearer <token>
  * Returns: { success, user }
+ * Uses session authentication
  */
 require_once __DIR__ . '/../../config/helpers.php';
 require_once __DIR__ . '/../../config/database.php';
 
+// CRITICAL: CORS headers MUST come before session_start()
 cors();
+startSession();
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') error('Method not allowed', 405);
 

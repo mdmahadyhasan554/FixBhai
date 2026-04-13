@@ -36,8 +36,8 @@ const mock = {
     
     const name = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
     return {
-      user:  { name, email, role },
-      token: 'mock_token_' + Date.now(),
+      user: { name, email, role },
+      // Note: Real backend uses session cookies, no token needed
     }
   },
 
@@ -45,8 +45,8 @@ const mock = {
     await delay(800)
     if (!name || !email || !password) throw new Error('All fields are required')
     return {
-      user:  { name, email, phone, role: 'customer' },
-      token: 'mock_token_' + Date.now(),
+      user: { name, email, phone, role: 'customer' },
+      // Note: Real backend uses session cookies, no token needed
     }
   },
 

@@ -122,6 +122,22 @@ export const TECH_SERVICES = [
   'Cleaning', 'Carpentry', 'Painting', 'Pest Control', 'CCTV Install',
 ]
 
+// ── Technician Specializations ───────────────────────────
+export const TECHNICIAN_SPECIALIZATIONS = [
+  { value: 'Electrical', label: 'Electrical', icon: 'lightning-charge' },
+  { value: 'AC Repair', label: 'AC Repair & Cooling', icon: 'wind' },
+  { value: 'Plumbing', label: 'Plumbing', icon: 'droplet' },
+  { value: 'Cleaning', label: 'Cleaning Services', icon: 'stars' },
+  { value: 'Carpentry', label: 'Carpentry & Furniture', icon: 'hammer' },
+  { value: 'Painting', label: 'Painting & Decoration', icon: 'brush' },
+  { value: 'Car Mechanic', label: 'Car Mechanic', icon: 'car-front' },
+  { value: 'Pest Control', label: 'Pest Control', icon: 'bug' },
+  { value: 'CCTV Install', label: 'CCTV & Security', icon: 'camera-video' },
+  { value: 'Appliance Repair', label: 'Appliance Repair', icon: 'tools' },
+  { value: 'Gardening', label: 'Gardening & Landscaping', icon: 'tree' },
+  { value: 'Other', label: 'Other (Specify)', icon: 'three-dots' },
+]
+
 export const TECH_AVAILABILITY = [
   { value: 'all',       label: 'All Technicians'  },
   { value: 'available', label: 'Available Now'     },

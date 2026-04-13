@@ -3,10 +3,12 @@
  *
  * Features:
  *   - Base URL + timeout from .env
- *   - Request interceptor: attaches JWT Bearer token
+ *   - withCredentials: true (sends session cookies)
  *   - Response interceptor: unwraps data, normalises errors
- *   - 401 handling: attempts token refresh once, then redirects to /login
- *   - Request queue: holds requests while a refresh is in progress
+ *   - 401 handling: clears storage and redirects to /login
+ * 
+ * Authentication: Uses PHP sessions with HttpOnly cookies.
+ * The session cookie is automatically sent with all requests.
  */
 import axios from 'axios'
 
@@ -17,30 +19,14 @@ const TIMEOUT  = Number(import.meta.env.VITE_API_TIMEOUT) || 10000
 const client = axios.create({
   baseURL: BASE_URL,
   timeout: TIMEOUT,
+  withCredentials: true, // CRITICAL: Send cookies with requests
   headers: {
     'Content-Type': 'application/json',
     Accept:         'application/json',
   },
 })
 
-// ── Token helpers (read/write localStorage) ───────────────
-export const tokenStorage = {
-  get:    ()      => { try { return JSON.parse(localStorage.getItem('fixbhai_token')) } catch { return null } },
-  set:    (token) => { try { localStorage.setItem('fixbhai_token', JSON.stringify(token)) } catch {} },
-  remove: ()      => { try { localStorage.removeItem('fixbhai_token'); localStorage.removeItem('fixbhai_user') } catch {} },
-}
-
-// ── Request interceptor — attach token ───────────────────
-client.interceptors.request.use(
-  (config) => {
-    const token = tokenStorage.get()
-    if (token) config.headers.Authorization = `Bearer ${token}`
-    return config
-  },
-  (error) => Promise.reject(error),
-)
-
-// ── Response interceptor — errors + refresh ──────────────
+// ── Response interceptor — errors ────────────────────────
 client.interceptors.response.use(
   // Unwrap .data so callers receive the payload directly
   (response) => response.data,
@@ -49,13 +35,15 @@ client.interceptors.response.use(
     const status   = error.response?.status
     const original = error.config
 
-    // ── 401: Redirect to login (token refresh disabled for now) ──────────────────────
+    // ── 401: Redirect to login ──────────────────────
     if (status === 401 && !original._isRetry) {
       // Prevent infinite loops
       original._isRetry = true
       
-      // Clear tokens and redirect to login
-      tokenStorage.remove()
+      // Clear local storage
+      try {
+        localStorage.removeItem('fixbhai_user')
+      } catch {}
       
       // Only redirect if not already on login page
       if (!window.location.pathname.includes('/login')) {

@@ -10,8 +10,10 @@
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/helpers.php';
 
+// CRITICAL: CORS headers MUST come before session_start()
 header('Content-Type: application/json');
 cors();
+startSession();
 
 // Only POST allowed
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -69,7 +71,7 @@ $filename = 'avatar_' . $user['id'] . '_' . time() . '.' . $extension;
 $filepath = $uploadDir . $filename;
 
 // Delete old avatar if exists
-$db = getDBConnection();
+$db = getDB();
 $stmt = $db->prepare("SELECT avatar_url FROM users WHERE id = ?");
 $stmt->execute([$user['id']]);
 $oldAvatar = $stmt->fetchColumn();
