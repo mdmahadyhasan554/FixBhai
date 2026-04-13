@@ -96,3 +96,51 @@ export const updateTechnicianStatus = async (technicianId, status) => {
     status 
   })
 }
+
+/**
+ * Update user profile (admin can edit any user)
+ * @param {number} userId - User ID
+ * @param {Object} data - User data to update
+ * @returns {Promise<{success: boolean, user: Object}>}
+ */
+export const updateUser = async (userId, data) => {
+  return client.post('/admin/update-user.php', { user_id: userId, ...data })
+}
+
+/**
+ * Upload avatar for any user (admin only)
+ * @param {number} userId - User ID
+ * @param {File} file - Image file
+ * @returns {Promise<{success: boolean, avatar_url: string}>}
+ */
+export const uploadUserAvatar = async (userId, file) => {
+  const formData = new FormData()
+  formData.append('user_id', userId)
+  formData.append('avatar', file)
+  return client.post('/admin/upload-user-avatar.php', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+}
+
+/**
+ * Delete avatar for any user (admin only)
+ * @param {number} userId - User ID
+ * @returns {Promise<{success: boolean}>}
+ */
+export const deleteUserAvatar = async (userId) => {
+  return client.delete('/admin/delete-user-avatar.php', { data: { user_id: userId } })
+}
+
+
+/**
+ * Assign technician to booking (admin only)
+ * @param {string} bookingId - Booking ID
+ * @param {number|null} technicianId - Technician ID (null to unassign)
+ * @returns {Promise<{success: boolean, technician?: Object}>}
+ */
+export const assignTechnician = async (bookingId, technicianId) => {
+  return client.post('/admin/assign-technician.php', { 
+    booking_id: bookingId,
+    technician_id: technicianId
+  })
+}

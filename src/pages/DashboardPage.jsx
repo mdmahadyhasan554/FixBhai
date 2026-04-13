@@ -47,6 +47,17 @@ const DashboardPage = () => {
   if (!user) return null
   if (user.role !== 'customer') return null
 
+  // Additional safety check - ensure user object is fully loaded
+  if (!user.name || !user.email) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh' }}>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    )
+  }
+
   const stats      = getStats()
   const ActiveTab  = TABS[activeTab]
   const handleLogout = () => { logout(); navigate(ROUTES.HOME) }

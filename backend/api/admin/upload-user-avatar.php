@@ -1,31 +1,29 @@
 <?php
 /**
- * Upload Avatar with Image Compression
- * POST /api/users/upload-avatar
+ * Admin Upload User Avatar
+ * POST /api/admin/upload-user-avatar
  * 
- * Features:
- * - Image compression (reduces file size by ~70%)
- * - Organized storage by user ID
- * - Automatic old file cleanup
- * - Supports: JPG, JPEG, PNG, GIF (max 5MB)
- * - Output: 500x500px optimized JPEG
+ * Allows admin to upload/change avatar for any user
+ * Includes image compression and organized storage
  */
 
-require_once __DIR__ . '/../../config/database.php';
-require_once __DIR__ . '/../../config/helpers.php';
+require_once '../../config/database.php';
+require_once '../../config/helpers.php';
 
-// CRITICAL: CORS headers MUST come before session_start()
 header('Content-Type: application/json');
 cors();
 startSession();
+requireAuth(['admin']);
 
-// Only POST allowed
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonResponse(['success' => false, 'message' => 'Method not allowed'], 405);
 }
 
-// Verify authentication
-requireAuth();
+$userId = $_POST['user_id'] ?? null;
+
+if (!$userId) {
+    jsonResponse(['success' => false, 'message' => 'User ID is required'], 400);
+}
 
 // Check if file was uploaded
 if (!isset($_FILES['avatar']) || $_FILES['avatar']['error'] !== UPLOAD_ERR_OK) {
@@ -35,7 +33,7 @@ if (!isset($_FILES['avatar']) || $_FILES['avatar']['error'] !== UPLOAD_ERR_OK) {
 $file = $_FILES['avatar'];
 
 // Validate file size (5MB max)
-$maxSize = 5 * 1024 * 1024; // 5MB
+$maxSize = 5 * 1024 * 1024;
 if ($file['size'] > $maxSize) {
     jsonResponse(['success' => false, 'message' => 'File size exceeds 5MB limit'], 400);
 }
@@ -52,10 +50,8 @@ if (!in_array($mimeType, $allowedTypes)) {
 
 /**
  * Compress and resize image
- * Converts all formats to JPEG for optimal compression
  */
 function compressImage($sourcePath, $mimeType, $targetPath, $quality = 85, $maxWidth = 500, $maxHeight = 500) {
-    // Create image resource based on type
     switch ($mimeType) {
         case 'image/jpeg':
         case 'image/jpg':
@@ -71,33 +67,21 @@ function compressImage($sourcePath, $mimeType, $targetPath, $quality = 85, $maxW
             return false;
     }
 
-    if (!$source) {
-        return false;
-    }
+    if (!$source) return false;
 
-    // Get original dimensions
     $width = imagesx($source);
     $height = imagesy($source);
-
-    // Calculate new dimensions (maintain aspect ratio)
     $ratio = min($maxWidth / $width, $maxHeight / $height);
     $newWidth = round($width * $ratio);
     $newHeight = round($height * $ratio);
 
-    // Create new image
     $destination = imagecreatetruecolor($newWidth, $newHeight);
-    
-    // Preserve transparency for PNG/GIF
     imagealphablending($destination, false);
     imagesavealpha($destination, true);
-    
-    // Resize
     imagecopyresampled($destination, $source, 0, 0, 0, 0, $newWidth, $newHeight, $width, $height);
 
-    // Save as JPEG with compression
     $result = imagejpeg($destination, $targetPath, $quality);
 
-    // Free memory
     imagedestroy($source);
     imagedestroy($destination);
 
@@ -105,28 +89,30 @@ function compressImage($sourcePath, $mimeType, $targetPath, $quality = 85, $maxW
 }
 
 try {
-    // Get authenticated user ID
-    $userId = $_SESSION['user_id'];
+    $db = getDB();
     
+    // Verify user exists
+    $stmt = $db->prepare("SELECT id, avatar_url FROM users WHERE id = ?");
+    $stmt->execute([$userId]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$user) {
+        jsonResponse(['success' => false, 'message' => 'User not found'], 404);
+    }
+
     // Create user-specific directory
     $uploadDir = __DIR__ . '/../../assets/avatars/' . $userId . '/';
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0755, true);
     }
 
-    // Generate filename (always .jpg after compression)
+    // Generate filename
     $filename = 'avatar_' . time() . '.jpg';
     $filepath = $uploadDir . $filename;
 
-    // Delete old avatar files for this user
-    $db = getDB();
-    $stmt = $db->prepare("SELECT avatar_url FROM users WHERE id = ?");
-    $stmt->execute([$userId]);
-    $oldAvatar = $stmt->fetchColumn();
-
-    if ($oldAvatar) {
-        // Extract user ID from old path and delete entire directory
-        if (preg_match('/\/assets\/avatars\/(\d+)\//', $oldAvatar, $matches)) {
+    // Delete old avatar files
+    if ($user['avatar_url']) {
+        if (preg_match('/\/assets\/avatars\/(\d+)\//', $user['avatar_url'], $matches)) {
             $oldDir = __DIR__ . '/../../assets/avatars/' . $matches[1] . '/';
             if (is_dir($oldDir)) {
                 $files = glob($oldDir . '*');
@@ -144,28 +130,18 @@ try {
         jsonResponse(['success' => false, 'message' => 'Failed to process image'], 500);
     }
 
-    // Get file size for logging
-    $compressedSize = filesize($filepath);
-    $originalSize = $file['size'];
-    $compressionRatio = round((1 - ($compressedSize / $originalSize)) * 100, 1);
-
-    // Update database with new avatar URL
+    // Update database
     $avatarUrl = '/reactJS/FixBhai/backend/assets/avatars/' . $userId . '/' . $filename;
     $stmt = $db->prepare("UPDATE users SET avatar_url = ?, updated_at = NOW() WHERE id = ?");
     $stmt->execute([$avatarUrl, $userId]);
 
     jsonResponse([
         'success' => true,
-        'message' => 'Avatar uploaded and compressed successfully',
-        'avatar_url' => $avatarUrl,
-        'stats' => [
-            'original_size' => round($originalSize / 1024, 2) . ' KB',
-            'compressed_size' => round($compressedSize / 1024, 2) . ' KB',
-            'compression' => $compressionRatio . '%'
-        ]
+        'message' => 'Avatar uploaded successfully',
+        'avatar_url' => 'http://localhost' . $avatarUrl
     ]);
 
 } catch (Exception $e) {
-    error_log("Avatar upload error: " . $e->getMessage());
+    error_log("Admin avatar upload error: " . $e->getMessage());
     jsonResponse(['success' => false, 'message' => 'Server error: ' . $e->getMessage()], 500);
 }

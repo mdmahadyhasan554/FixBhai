@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 09, 2026 at 06:15 AM
+-- Generation Time: Apr 13, 2026 at 10:08 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -55,7 +55,8 @@ CREATE TABLE `bookings` (
 INSERT INTO `bookings` (`id`, `customer_id`, `technician_id`, `service_id`, `status`, `scheduled_date`, `scheduled_time`, `address`, `problem_category`, `description`, `notes`, `amount`, `payment_status`, `payment_method`, `transaction_id`, `cancelled_reason`, `created_at`, `updated_at`) VALUES
 ('BK001', 4, NULL, 1, 'pending', '2026-04-13', '10:00 AM', 'Dhaka, Bangladesh', 'Not working / broken', 'AC not cooling properly', '', 299.00, 'unpaid', NULL, NULL, NULL, '2026-04-12 01:46:16', '2026-04-12 01:46:16'),
 ('BK002', 4, NULL, 2, 'completed', '2026-05-01', '10:00 AM', 'Dhaka, Bangladesh', 'Not working / broken', 'Pipe leaking', '', 199.00, 'unpaid', NULL, NULL, NULL, '2026-04-12 02:05:30', '2026-04-12 04:21:01'),
-('BK003', 14, NULL, 2, 'pending', '2026-04-14', '10:00 AM', 'Dhaka, Bangladesh', 'Leaking / dripping', 'Bathroom tap leaking', '', 199.00, 'unpaid', NULL, NULL, NULL, '2026-04-12 04:11:42', '2026-04-12 04:11:42');
+('BK003', 14, NULL, 2, 'cancelled', '2026-04-14', '10:00 AM', 'Dhaka, Bangladesh', 'Leaking / dripping', 'Bathroom tap leaking', '', 199.00, 'unpaid', NULL, NULL, '', '2026-04-12 04:11:42', '2026-04-13 07:38:26'),
+('BK004', 13, NULL, 1, 'pending', '2026-05-04', '11:00 AM', 'd', 'Needs servicing / maintenance', '', '', 299.00, 'unpaid', NULL, NULL, NULL, '2026-04-13 07:40:48', '2026-04-13 07:40:48');
 
 -- --------------------------------------------------------
 
@@ -243,16 +244,16 @@ INSERT INTO `users` (`id`, `name`, `email`, `phone`, `password_hash`, `role`, `s
 (2, 'Rahim Customer', 'rahim@gmail.com', '+8801800000000', '$2y$10$G6FVMSbfXBvOQ7/5m3ZML.9BC2VruFP4Qmao5rOAKzFWGP4lZzDQe', 'customer', NULL, NULL, NULL, 1, '2026-04-09 00:00:00', '2026-04-09 00:00:00'),
 (3, 'Karim Technician', 'karim@fixbhai.com', '+8801900000000', '$2y$10$Aok5jP/Khlrcrn7tAn.ZqOl1BwxPabD939yjMkkivGiiRkZKCE.3a', 'technician', 'AC Repair', NULL, 'https://i.pravatar.cc/150?img=11', 1, '2026-04-09 00:00:00', '2026-04-09 00:00:00'),
 (4, 'Roshmalai', 'roshmalai@gmail.com', '01715377817', '$2y$10$oJR.NN1LT8rBaLVFHzGkDu3ioUY7rOBAqwM000HBbaphJ37C.teQG', 'customer', NULL, NULL, NULL, 1, '2026-04-09 05:27:48', '2026-04-09 05:27:48'),
-(5, 'Sakib Khan', 'sakibkhan@gmail.com', '01777777777', '$2y$10$0K7dP8SbV.PnfvuXHPr3k.2yAVe4HBjeh6fmqCdpLNchCshMgQgBO', 'customer', NULL, NULL, NULL, 1, '2026-04-12 02:31:22', '2026-04-12 02:31:22'),
-(6, 'Hero Alom', 'heroalom@gmail.com', '01888888888', '$2y$10$jh5qgRY1dRhsLKbcaKZD1OOAkrWJnc6h6l4HrPPY/iNdZE/9Ov6m6', 'customer', NULL, NULL, NULL, 1, '2026-04-12 02:33:06', '2026-04-12 02:33:06'),
-(7, 'Dipjol', 'dipjol@gmail.com', '01999999999', '$2y$10$rQArqRWp.UTG7du1YaRlquBvbCUtZ1YyscauqBfkiTOBi20HhLkPG', 'customer', NULL, NULL, NULL, 1, '2026-04-12 02:35:51', '2026-04-12 02:35:51'),
-(8, 'Misha Sawadagor', 'misha@gmail.com', '01444444444', '$2y$10$Z1egG2ZLOjh2F0t0A2qALe4jRHjN1YHtYwYOSrzm6Ba0sMuw.SGQe', 'customer', NULL, NULL, NULL, 1, '2026-04-12 02:38:13', '2026-04-12 02:38:13'),
+(5, 'Sakib Khan', 'sakibkhan@gmail.com', '01777777777', '$2y$10$0K7dP8SbV.PnfvuXHPr3k.2yAVe4HBjeh6fmqCdpLNchCshMgQgBO', 'technician', 'Painting', NULL, NULL, 1, '2026-04-12 02:31:22', '2026-04-13 08:07:23'),
+(6, 'Hero Alom', 'heroalom@gmail.com', '01888888888', '$2y$10$jh5qgRY1dRhsLKbcaKZD1OOAkrWJnc6h6l4HrPPY/iNdZE/9Ov6m6', 'technician', 'Plumbing', NULL, NULL, 1, '2026-04-12 02:33:06', '2026-04-13 08:06:42'),
+(7, 'Dipjol', 'dipjol@gmail.com', '01999999999', '$2y$10$rQArqRWp.UTG7du1YaRlquBvbCUtZ1YyscauqBfkiTOBi20HhLkPG', 'technician', 'CCTV Install', NULL, NULL, 1, '2026-04-12 02:35:51', '2026-04-13 07:59:11'),
+(8, 'Misha Sawadagor', 'misha@gmail.com', '01444444444', '$2y$10$Z1egG2ZLOjh2F0t0A2qALe4jRHjN1YHtYwYOSrzm6Ba0sMuw.SGQe', 'technician', 'CCTV Install', NULL, NULL, 1, '2026-04-12 02:38:13', '2026-04-13 01:05:27'),
 (9, 'Aarvi', 'aarvi@gmail.com', '01555555555', '$2y$10$/LkAkUBp.YcnRX6cUq.cvuEhilaixk.u5y9D46PgGbYVgMF4QOLV.', 'customer', NULL, NULL, NULL, 1, '2026-04-12 02:41:04', '2026-04-12 02:41:04'),
 (10, 'Mishita', 'mishita@gmail.com', '01666666666', '$2y$10$dAv695GhzkL4mHNMWU3pQeA6ZaTJQjjqV01UED6Hl3PYWFUIWKwRG', 'customer', NULL, NULL, NULL, 1, '2026-04-12 02:42:17', '2026-04-12 02:42:17'),
 (11, 'Saanvi', 'saanvi@gmail.com', '01333333333', '$2y$10$8TYR0KBh9qOH5V9mpYaJU.NdDkB1ygNdbFz/syY1AFGMhQ884irtu', 'customer', NULL, NULL, NULL, 1, '2026-04-12 02:43:59', '2026-04-12 02:43:59'),
-(12, 'Rishika Khan', 'rishika@gmail.com', '01478963258', '$2y$10$WDZ0UpFD62O8pxDZE5rXPOQQcS24WE2AojcIHOvHdqElsasW7q/Ki', 'technician', 'Plumbing', NULL, NULL, 1, '2026-04-12 02:45:20', '2026-04-12 04:39:01'),
+(12, 'Rishika Khan', 'rishika@gmail.com', '01478963258', '$2y$10$WDZ0UpFD62O8pxDZE5rXPOQQcS24WE2AojcIHOvHdqElsasW7q/Ki', 'technician', 'Cleaning', NULL, NULL, 1, '2026-04-12 02:45:20', '2026-04-13 07:59:50'),
 (13, 'Trisha Patwary', 'trisha@gmail.com', '01236547896', '$2y$10$9AB7ZZo42634tzqGpdUFsO5G5yUDwFgusJuLvk490X9q3ZQin6NQm', 'customer', NULL, NULL, NULL, 1, '2026-04-12 02:46:47', '2026-04-12 02:46:47'),
-(14, 'Tahsin Molla', 'tahsin@gmail.com', '01456325879', '$2y$10$YYXnT7ADfiQwVEFVwhAX5ewxS65SgmxCi2fhpwmY07zxUasHRUMAW', 'customer', NULL, NULL, NULL, 1, '2026-04-12 02:47:56', '2026-04-12 02:47:56');
+(14, 'Tahsin Molla', 'tahsin@gmail.com', '01456325879', '$2y$10$YYXnT7ADfiQwVEFVwhAX5ewxS65SgmxCi2fhpwmY07zxUasHRUMAW', 'technician', 'Electrical', NULL, NULL, 1, '2026-04-12 02:47:56', '2026-04-13 07:58:13');
 
 -- --------------------------------------------------------
 

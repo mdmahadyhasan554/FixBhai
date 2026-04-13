@@ -22,26 +22,39 @@ const UserAvatar = ({ name, avatarUrl, size = 36, bg = '#2563eb', className = ''
     return name.substring(0, 2).toUpperCase()
   }
 
+  // Handle avatar URL - add localhost if it's a relative path
+  const getAvatarUrl = () => {
+    if (!avatarUrl) return null
+    if (avatarUrl.startsWith('http')) return avatarUrl
+    return `http://localhost${avatarUrl}`
+  }
+
+  const finalAvatarUrl = getAvatarUrl()
+
   return (
     <div
       className={`rounded-circle d-flex align-items-center justify-content-center text-white fw-bold flex-shrink-0 overflow-hidden ${className}`}
       style={{ 
         width: size, 
         height: size, 
-        background: avatarUrl ? '#f8f9fa' : bg, 
+        background: finalAvatarUrl ? '#f8f9fa' : bg, 
         fontSize: size * 0.38, 
         lineHeight: 1 
       }}
       aria-hidden="true"
     >
-      {avatarUrl ? (
+      {finalAvatarUrl ? (
         <img
-          src={avatarUrl}
+          src={finalAvatarUrl}
           alt={name}
           style={{
             width: '100%',
             height: '100%',
             objectFit: 'cover',
+          }}
+          onError={(e) => {
+            // Fallback to initials if image fails to load
+            e.target.style.display = 'none'
           }}
         />
       ) : (

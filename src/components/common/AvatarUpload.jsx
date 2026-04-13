@@ -25,18 +25,43 @@ const AvatarUpload = ({ size = 150, editable = true, onUploadSuccess }) => {
   const [preview, setPreview] = useState(null)
   const [dragActive, setDragActive] = useState(false)
 
-  const avatarUrl = preview || user?.avatar_url
-  const hasAvatar = Boolean(avatarUrl)
+  // Safety check for user - must be after all hooks
+  if (!user) {
+    return (
+      <div className="text-center">
+        <div
+          className="rounded-circle d-inline-flex align-items-center justify-content-center bg-secondary text-white"
+          style={{ width: size, height: size, fontSize: size * 0.38 }}
+        >
+          ?
+        </div>
+        <div className="mt-2 text-muted small">Loading...</div>
+      </div>
+    )
+  }
 
   // Get user initials for fallback
   const getInitials = () => {
-    if (!user?.name) return '?'
+    if (!user || !user.name) return '?'
     const names = user.name.split(' ')
     if (names.length >= 2) {
       return (names[0][0] + names[names.length - 1][0]).toUpperCase()
     }
     return user.name.substring(0, 2).toUpperCase()
   }
+
+  const avatarUrl = preview || (user && user.avatar_url) || null
+  const hasAvatar = Boolean(avatarUrl)
+
+  // Handle avatar URL - add localhost if it's a relative path
+  const getAvatarUrl = () => {
+    if (!avatarUrl) return null
+    if (typeof avatarUrl !== 'string') return null
+    if (avatarUrl.startsWith('http') || avatarUrl.startsWith('data:')) return avatarUrl
+    return `http://localhost${avatarUrl}`
+  }
+
+  const finalAvatarUrl = getAvatarUrl()
 
   // Validate file
   const validateFile = (file) => {
@@ -151,12 +176,16 @@ const AvatarUpload = ({ size = 150, editable = true, onUploadSuccess }) => {
         >
           {hasAvatar ? (
             <img
-              src={avatarUrl}
-              alt={user?.name}
+              src={finalAvatarUrl}
+              alt={user.name || 'User avatar'}
               style={{
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover',
+              }}
+              onError={(e) => {
+                // Hide image if it fails to load
+                e.target.style.display = 'none'
               }}
             />
           ) : (

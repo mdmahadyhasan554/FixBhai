@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import useAsync from '../../../hooks/useAsync'
-import { getAllBookings } from '../../../api/adminApi'
+import { getAllBookings, getAllTechnicians, assignTechnician } from '../../../api/adminApi'
 import DataTable from '../DataTable'
 import StatusBadge from '../../../components/common/StatusBadge'
 import { BOOKING_STATUS_FILTERS } from '../../../constants'
@@ -12,12 +12,64 @@ const COLUMNS = [
   { key: 'id',           label: 'Booking ID',  render: v => <span className="text-muted small fw-mono">#{v}</span> },
   { key: 'customer_name', label: 'Customer',    render: v => <span className="fw-semibold">{v}</span> },
   { key: 'service_name', label: 'Service',     render: v => <span className="fw-semibold">{v}</span> },
-  { key: 'technician_name', label: 'Technician',  hideOnMobile: true, render: v => v || <span className="text-muted">Not assigned</span> },
+  { key: 'technician',   label: 'Technician',  hideOnMobile: true, render: () => null }, // Will be replaced
   { key: 'booking_date', label: 'Date',        hideOnMobile: true, render: (v, row) => <span className="text-muted small">{v} {row.booking_time}</span> },
   { key: 'total_amount', label: 'Amount',      render: v => <span className="fw-semibold text-primary">৳{v}</span> },
   { key: 'status',       label: 'Status',      render: v => <StatusBadge status={v} /> },
   { key: 'actions',      label: 'Actions',     render: () => null }, // Will be replaced dynamically
 ]
+
+const TechnicianAssignment = ({ booking, technicians, onAssign }) => {
+  const { toast } = useToast()
+  const [assigning, setAssigning] = useState(false)
+
+  const handleAssign = async (techId) => {
+    setAssigning(true)
+    try {
+      await assignTechnician(booking.id, techId)
+      toast.success('Technician assigned successfully')
+      onAssign()
+    } catch (err) {
+      toast.error(err?.message || 'Failed to assign technician')
+    } finally {
+      setAssigning(false)
+    }
+  }
+
+  if (booking.technician_id) {
+    return (
+      <div className="d-flex align-items-center gap-2">
+        <span className="fw-medium">{booking.technician_name}</span>
+        <button
+          className="btn btn-xs btn-outline-danger rounded-circle p-0"
+          style={{ width: 20, height: 20, fontSize: '0.65rem' }}
+          onClick={() => handleAssign(null)}
+          disabled={assigning}
+          title="Unassign technician"
+        >
+          <i className="bi bi-x" />
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <select
+      className="form-select form-select-sm"
+      style={{ fontSize: '0.8rem', maxWidth: 180 }}
+      onChange={(e) => e.target.value && handleAssign(parseInt(e.target.value))}
+      disabled={assigning}
+      value=""
+    >
+      <option value="">Assign technician...</option>
+      {technicians.map(tech => (
+        <option key={tech.id} value={tech.id}>
+          {tech.name} {tech.specialization ? `(${tech.specialization})` : ''}
+        </option>
+      ))}
+    </select>
+  )
+}
 
 const AdminBookingActions = ({ booking, onUpdate }) => {
   const { toast } = useToast()
@@ -71,27 +123,38 @@ const AdminBookingActions = ({ booking, onUpdate }) => {
 
 const AdminBookingsTab = () => {
   const [bookings, setBookings] = useState([])
+  const [technicians, setTechnicians] = useState([])
   const [filter, setFilter] = useState('all')
   const { run, loading } = useAsync()
 
-  // Fetch all bookings on mount
+  // Fetch all bookings and technicians on mount
   useEffect(() => {
-    loadBookings()
+    loadData()
   }, [])
 
-  const loadBookings = () => run(async () => {
-    const response = await getAllBookings()
-    setBookings(response.data || [])
+  const loadData = () => run(async () => {
+    const [bookingsRes, techniciansRes] = await Promise.all([
+      getAllBookings(),
+      getAllTechnicians()
+    ])
+    setBookings(bookingsRes.data || [])
+    setTechnicians(techniciansRes.data || [])
   })
 
   const filtered = filter === 'all' ? bookings : bookings.filter(b => b.status === filter)
 
-  // Create columns with onUpdate callback
+  // Create columns with dynamic renders
   const columnsWithActions = COLUMNS.map(col => {
+    if (col.label === 'Technician') {
+      return {
+        ...col,
+        render: (v, row) => <TechnicianAssignment booking={row} technicians={technicians} onAssign={loadData} />
+      }
+    }
     if (col.label === 'Actions') {
       return {
         ...col,
-        render: (v, row) => <AdminBookingActions booking={row} onUpdate={loadBookings} />
+        render: (v, row) => <AdminBookingActions booking={row} onUpdate={loadData} />
       }
     }
     return col
@@ -104,7 +167,7 @@ const AdminBookingsTab = () => {
           <h6 className="fw-bold mb-0">All Bookings</h6>
           <p className="text-muted small mb-0">{filtered.length} bookings</p>
         </div>
-        <Button variant="outline-secondary" onClick={loadBookings} disabled={loading}>
+        <Button variant="outline-secondary" onClick={loadData} disabled={loading}>
           <i className="bi bi-arrow-clockwise me-2" />Refresh
         </Button>
       </div>

@@ -73,7 +73,7 @@ const Navbar = () => {
                 end={to === ROUTES.HOME}
                 className={({ isActive }) =>
                   `nav-link px-3 py-2 rounded-3 fw-medium ${
-                    isActive ? 'text-primary bg-primary bg-opacity-10' : 'text-secondary'
+                    isActive ? 'text-white bg-primary' : 'text-secondary'
                   }`
                 }
                 style={({ isActive }) => ({
@@ -132,9 +132,9 @@ const UserDropdown = forwardRef(function UserDropdown({ user, open, onToggle, on
         aria-haspopup="true"
         aria-label="User menu"
       >
-        <UserAvatar name={user.name} avatarUrl={user.avatar_url} size={26} fontSize="0.75rem" />
+        <UserAvatar name={user?.name} avatarUrl={user?.avatar_url} size={26} fontSize="0.75rem" />
         <span className="d-none d-xl-inline fw-medium" style={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {user.name}
+          {user?.name}
         </span>
         <i className={`bi bi-chevron-${open ? 'up' : 'down'}`} style={{ fontSize: '0.65rem' }} aria-hidden="true" />
       </button>
@@ -195,7 +195,7 @@ const MobileMenu = ({ user, onLogout }) => (
               end={to === ROUTES.HOME}
               className={({ isActive }) =>
                 `d-block px-3 py-2 rounded-3 fw-medium text-decoration-none mb-1 ${
-                  isActive ? 'text-primary bg-primary bg-opacity-10' : 'text-secondary'
+                  isActive ? 'text-white bg-primary' : 'text-secondary'
                 }`
               }
               style={{ outline: 'none', transition: 'all 0.2s ease' }}
@@ -212,10 +212,10 @@ const MobileMenu = ({ user, onLogout }) => (
         {user ? (
           <>
             <div className="d-flex align-items-center gap-2 px-2 py-2 rounded-3 bg-light mb-2">
-              <UserAvatar name={user.name} avatarUrl={user.avatar_url} size={34} fontSize="0.9rem" />
+              <UserAvatar name={user?.name} avatarUrl={user?.avatar_url} size={34} fontSize="0.9rem" />
               <div>
-                <div className="fw-semibold small">{user.name}</div>
-                <div className="text-muted" style={{ fontSize: '0.72rem' }}>{user.email}</div>
+                <div className="fw-semibold small">{user?.name}</div>
+                <div className="text-muted" style={{ fontSize: '0.72rem' }}>{user?.email}</div>
               </div>
             </div>
             <Link
